@@ -11,7 +11,7 @@ from PIL import Image
 from torchvision import transforms as T
 from torchvision.models import efficientnet_v2_s
 
-ap = argparse.ArgumentParser(); ap.add_argument('--epochs', type=int, default=20); ap.add_argument('--name', default='effnetv2s')
+ap = argparse.ArgumentParser(); ap.add_argument('--epochs', type=int, default=20); ap.add_argument('--name', default='effnetv2s'); ap.add_argument('--eval-only', default='', help='학습 없이 best.pt를 평가하고 결과 이름에 붙일 표시')
 a = ap.parse_args()
 DATA = V11 / 'data' / 'cls'; out = V11 / 'runs' / 'cls' / a.name; out.mkdir(parents=True, exist_ok=True)
 MEAN, STD = (0.485, 0.456, 0.406), (0.229, 0.224, 0.225)
@@ -76,7 +76,7 @@ sched = torch.optim.lr_scheduler.OneCycleLR(opt, max_lr=3e-4, total_steps=a.epoc
 scaler, crit, best = torch.cuda.amp.GradScaler(), nn.CrossEntropyLoss(weight=weight, label_smoothing=0.1), -1
 print('train', cnt.tolist(), 'val', len(va_items), 'weight', weight.tolist(), flush=True)
 t0 = time.time()
-for ep in range(a.epochs):
+for ep in range(0 if a.eval_only else a.epochs):
     model.train(); tl = n = 0
     for x, y in tr:
         x, y = x.cuda(non_blocking=True), y.cuda(non_blocking=True)
@@ -94,8 +94,8 @@ for split in ('val', 'test'):
     res[split] = metrics(y, pred); res[split]['macro_f1_photo_ci95'] = photo_ci(it, pred)
     for key in ('block', 'device'):
         res[split]['by_' + key] = {g: metrics([r['y'] for r in it if r[key] == g], [q for r, q in zip(it, pred) if r[key] == g]) for g in sorted({r[key] for r in it})}
-    with open(out / f'probs_{split}.csv', 'w', newline='', encoding='utf-8-sig') as f:
+    with open(out / f'probs_{split}{a.eval_only}.csv', 'w', newline='', encoding='utf-8-sig') as f:
         w = csv.writer(f); w.writerow(['file', 'photo', 'block', 'stage', 'pred'] + STAGES)
         w.writerows([[r['file'], r['photo'], r['block'], r['stage'], STAGES[q]] + [round(float(v), 4) for v in pr] for r, q, pr in zip(it, pred, P)])
     print(split, json.dumps(res[split], ensure_ascii=False), flush=True)
-(out / 'metrics.json').write_text(json.dumps(res, ensure_ascii=False, indent=1), encoding='utf-8'); print('TRAIN_DONE', flush=True)
+(out / f'metrics{a.eval_only}.json').write_text(json.dumps(res, ensure_ascii=False, indent=1), encoding='utf-8'); print('TRAIN_DONE', flush=True)

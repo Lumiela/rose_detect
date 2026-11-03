@@ -9,7 +9,7 @@ import numpy as np
 from PIL import Image, ImageOps
 from ultralytics import YOLO
 
-ap = argparse.ArgumentParser(); ap.add_argument('weights'); ap.add_argument('out'); ap.add_argument('--splits', default='val,test'); ap.add_argument('--batch', type=int, default=32)
+ap = argparse.ArgumentParser(); ap.add_argument('weights'); ap.add_argument('out'); ap.add_argument('--splits', default='val,test'); ap.add_argument('--batch', type=int, default=32); ap.add_argument('--iou', type=float, default=0.5)
 ap.add_argument('--tile', type=int, default=1280); ap.add_argument('--overlap', type=float, default=0.25); ap.add_argument('--imgsz', type=int, default=640); a = ap.parse_args()
 OUT = Path(a.out); OUT.mkdir(parents=True, exist_ok=True); model = YOLO(a.weights)
 man = read(MANIFEST); anns, igns = C.defaultdict(list), C.defaultdict(list)
@@ -69,7 +69,7 @@ def match(f, P, conf):
         hit = -1
         if len(G):
             io = iou_ios(p[:4], G)[0]; io[list(used)] = 0; j = int(io.argmax())
-            if io[j] >= 0.5:
+            if io[j] >= a.iou:
                 hit = j
         if hit >= 0:
             used.add(hit); tp += 1
