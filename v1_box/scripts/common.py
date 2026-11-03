@@ -11,6 +11,7 @@ if (V11 / 'photos').is_dir():  # 서버: 30_package.py 묶음을 푼 구조
     LEGACY_CSV = V11 / 'labels_20261030.csv'
 ANN = V11 / 'labels' / 'annotations.csv'
 IGN = V11 / 'labels' / 'ignore_regions.csv'
+REJ = V11 / 'labels' / 'pseudo_rejected.csv'  # 사람이 꽃이 아니라고 판정한 임시 라벨
 MANIFEST = V11 / 'labels' / 'photos.csv'
 STAGES = ['봉오리', '개화중', '만개']
 ANN_FIELDS = ['photo', 'ann_id', 'x0', 'y0', 'x1', 'y1', 'stage', 'source']

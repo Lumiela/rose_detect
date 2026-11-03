@@ -17,6 +17,9 @@ for r in read(ANN):
     anns[r['photo']].append(box(r))
 for r in read(IGN):
     igns[r['photo']].append(box(r))
+rejs = C.defaultdict(list)
+for r in read(REJ):
+    rejs[r['photo']].append(box(r))
 
 
 def ov(p, q):
@@ -60,6 +63,8 @@ for m in read(MANIFEST):
             c = [ov(p[:4], g) for g in boxes]
             if any(i >= 0.3 or s >= 0.6 for i, s in c):
                 continue
+            if any(i >= 0.3 or s >= 0.6 for i, s in (ov(p[:4], g) for g in rejs[f] + igns[f])):  # 사람이 판정한 영역은 예측으로 덮지 않는다
+                st['skipped'] += 1; continue
             if p[4] >= a.hi:
                 boxes.append(p[:4]); st['pseudo'] += 1
             elif p[4] >= a.lo and not any(s >= 0.3 for _, s in c):
