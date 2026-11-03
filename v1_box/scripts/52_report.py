@@ -107,6 +107,61 @@ E2E_NOTE = '매크로 F1 차이는 구간 안이라 §first§와 §third_pseudo�
 CLS_NOTE = f"§cls/effnetv2s_r2§ test 정확도 {f3(c['acc'])}, 매크로 F1 {f3(c['macro_f1'])} (사진 단위 95% 구간 {ci(c['macro_f1_photo_ci95'])}). val 매크로 F1은 {f3(v['macro_f1'])}입니다. 라벨 박스로 자른 크롭 기준이라, 탐지 오류를 포함한 값은 다음 절의 연결 평가입니다."
 FILES = [['§labels/annotations.csv§', '라벨 원본'], ['§labels/ignore_regions.csv§', '제외 영역'], ['§scripts/§', '내보내기, 학습, 평가, 판정 반영 스크립트'], ['§runs/det/third_pseudo/§', '후보 탐지 모델과 오류 시트 (커밋하지 않음)'], ['§runs/cls/effnetv2s_r2/§', '후보 분류 모델 (커밋하지 않음)'], ['§README.md§', '라벨 규칙, 분할, 판정 내역 상세']]
 
+def iou_box(a, b):
+    w = max(0, min(a[2], b[2]) - max(a[0], b[0])); h = max(0, min(a[3], b[3]) - max(a[1], b[1])); i = w * h
+    return i / ((a[2] - a[0]) * (a[3] - a[1]) + (b[2] - b[0]) * (b[3] - b[1]) - i + 1e-9)
+
+
+def error_causes():
+    # 놓침과 오탐을 원인별로 나눈다. 놓침: IoU 0.5 이상 예측의 신뢰도, 없으면 임계값 이상 예측과 일부 겹침(0.1~0.5) 여부
+    P = J(R / 'det/third_pseudo/eval/preds_test.json'); conf = ch('third', 'val')['conf']; fn, fp = C.Counter(), C.Counter()
+    for f, ps in P.items():
+        G = [box(r) for r in ann if r['photo'] == f]; igs = [box(r) for r in ign if r['photo'] == f]; used = set()
+        for p in sorted((q for q in ps if q[4] >= conf), key=lambda q: -q[4]):
+            v = [iou_box(p, g) if j not in used else 0 for j, g in enumerate(G)]; j = max(range(len(v)), key=v.__getitem__) if v else -1
+            if j >= 0 and v[j] >= 0.5:
+                used.add(j)
+            elif not any(b[0] <= (p[0] + p[2]) / 2 <= b[2] and b[1] <= (p[1] + p[3]) / 2 <= b[3] for b in igs):
+                fp['near' if max([iou_box(p, g) for g in G], default=0) >= 0.1 else 'none'] += 1
+        for j, g in enumerate(G):
+            if j in used:
+                continue
+            hi = [q[4] for q in ps if iou_box(q, g) >= 0.5]
+            k = ('thr' if max(hi) >= 0.3 else 'low') if hi else 'box' if any(0.1 <= iou_box(q, g) < 0.5 and q[4] >= conf for q in ps) else 'nopred'
+            fn[k] += 1
+    return fn, fp
+
+
+FN, FP = error_causes(); print('causes', dict(FN), dict(FP))
+ok = sum(cm4[i][i] for i in range(3)); wrong = sum(cm4[i][j] for i in range(3) for j in range(3) if i != j); miss = sum(cm4[i][3] for i in range(3)); N = ok + wrong + miss; assert N == 519
+pct = lambda v: f'{v / N * 100:.1f}%'
+T_RES = (['결과', '개수', '라벨 대비'], [['꽃도 찾고 단계도 맞음', ok, pct(ok)], ['꽃은 찾았지만 단계가 틀림', wrong, pct(wrong)], ['놓침', miss, pct(miss)], ['라벨에 없는 예측 (오탐)', sum(cm4[3]), '-']], (1, 2))
+T_CAUSE = (['구분', '원인', '개수'], [['놓침', '신뢰도 0.3~0.65라 임계값에서 탈락', FN['thr']], ['놓침', '박스 위치가 어긋남 (IoU 0.1~0.5)', FN['box']], ['놓침', '신뢰도 0.3 미만', FN['low']], ['놓침', '예측 없음', FN['nopred']], ['오탐', '주변에 라벨 없음', FP['none']], ['오탐', '라벨과 일부만 겹침 (박스 어긋남)', FP['near']]], (2,))
+sw = DET['third']['test']['sweep']
+T_SWEEP = (['임계값', '정밀도', '재현율', 'F1', '오탐', '놓침'], [[k, f3(sw[k]['precision']), f3(sw[k]['recall']), f3(sw[k]['f1']), sw[k]['fp'], sw[k]['fn']] for k in ('0.5', '0.6', '0.65', '0.7', '0.8')], (1, 2, 3, 4, 5))
+pm = {p['photo']: p for p in ch('third', 'test')['per_photo']}; rows_ph = []; bud = {}
+for c_ in sorted(e['per_photo'], key=lambda q: q['photo']):
+    p_ = pm[c_['photo']]; bud[c_['photo'][9:15]] = abs(c_['label'][0] - c_['pred'][0])
+    if p_['gt'] or p_['fp']:
+        rows_ph.append(['§' + c_['photo'][9:15] + '§', p_['block'], p_['gt'], p_['tp'], p_['fp'], p_['gt'] - p_['tp'], c_['label'][0], c_['pred'][0]])
+T_PHOTO = (['사진', '구간', '라벨', '찾음', '오탐', '놓침', '봉오리 라벨', '봉오리 예측'], rows_ph, (2, 3, 4, 5, 6, 7))
+bv = sorted(bud.values()); bud_med = bv[len(bv) // 2]; bud_wo = sum(v for k, v in bud.items() if k != '135052') / (len(bud) - 1)
+print('bud err', sum(bv) / len(bv), bud_med, round(bud_wo, 2), 'rows', len(rows_ph))
+for name, src, h in [('fn_top.jpg', 'sheet_test_fn.jpg', 450), ('fp_top.jpg', 'sheet_test_fp.jpg', 450)]:
+    s_ = Image.open(R / 'det/third_pseudo/eval' / src); s_.crop((0, 0, s_.width, h)).save(FIG / name, quality=82)
+EVAL_NUM = [f'**임계값으로 해결되지 않습니다.** 0.6, 0.65, 0.7의 F1이 {f3(sw["0.6"]["f1"])}, {f3(sw["0.65"]["f1"])}, {f3(sw["0.7"]["f1"])}로 거의 같고, 오탐과 놓침을 맞바꿉니다.',
+            f'**박스 어긋남:** 놓침 {FN["box"]}개와 오탐 {FP["near"]}개는 같은 꽃이 양쪽에 잡힌 경우가 많을 것으로 보입니다. IoU 기준을 0.3으로 낮추면 26개가 정답으로 바뀝니다.',
+            f'**봉오리 개수 오차:** 사진당 평균 {sum(bv) / len(bv):.2f}개, 중앙값 {bud_med}개입니다. 사진 §135052§ 한 장이 {bud["135052"]}개이고, 이 사진을 빼면 평균 {bud_wo:.2f}개입니다. 라벨이 빠진 봉오리가 있으면 실제 오차는 더 작습니다.',
+            '**구간별 재현율:** 빨간 꽃 0.873, 혼합 0.835, 노란 꽃 0.800입니다. val에는 노란 꽃 구간이 없어 val F1(0.927)이 test(0.835)보다 높게 나온 것으로 보입니다.',
+            '**단계 오류:** 대부분 인접 단계에서 납니다. 봉오리와 만개가 뒤바뀐 경우는 1개이고, 개화중 F1이 가장 낮습니다.']
+EVAL_LOOK = ['**큰 꽃을 놓칩니다.** §M001§~§M003§, §M008§, §M009§, §M018§, §M025§처럼 뚜렷한 꽃이 놓침에 있습니다. 긴 변 160px 이상 재현율은 §first§ 0.860에서 §third_pseudo§ 0.825로 내려갔습니다 (라벨 57개). 임시 라벨이 봉오리뿐인 것이 원인일 수 있지만 확인하지 않았습니다.',
+             '**붙은 꽃을 한 박스로 묶습니다.** §F002§, §F005§에서 꽃 두 송이를 박스 하나로 잡았습니다.',
+             '**오탐의 상당수는 실제 봉오리로 보입니다.** §F015§ 이후에 많고, §F001§~§F014§는 어린 잎과 새순이 많아 보입니다. 박스가 어긋난 같은 꽃도 섞여 있어, 라벨이 빠진 봉오리 수는 알 수 없습니다.',
+             '**라벨이 의심되는 칸이 있습니다.** §M021§~§M024§, §M061§, §M062§는 잎처럼 보입니다.',
+             '**밝은 노란 봉오리에 약합니다.** 사진 §135048§, §135052§에서 빛에 날아간 봉오리가 놓침과 오탐 양쪽에 많습니다.',
+             '**크기 범위 밖 사진이 있습니다.** §135030§의 긴 변 1,830px 꽃은 타일(1280)보다 큽니다.']
+EVAL_V2 = ['큰 꽃 재현율, 붙은 꽃 분리, 사진당 개수 오차를 v2의 비교 항목으로 넣습니다.', 'test 오류 시트를 판정하면 위 인상을 확인하고 §135052§의 오탐이 실제 오류인지 알 수 있습니다.', 'ESP32 사진에서 꽃이 몇 px로 찍히는지 확인해야, 작은 봉오리와 큰 꽃 중 무엇이 더 중요한지 판단할 수 있습니다.']
+
 ul = lambda it: '<ul>' + ''.join(f'<li>{inline(x)}</li>' for x in it) + '</ul>'
 sec = lambda n, t, b: f'<section><h2><span class="num">{n:02d}</span>{t}</h2>{b}</section>'
 flow = '<div class="flow">' + '<div class="arrow">→</div>'.join(f'<div class="step{" key" if k else ""}"><b>{a}</b><small>{b}</small></div>' for a, b, k in [('농장 사진', '휴대폰', 0), ('타일 + 전체', '1280 타일과 전체를 640으로', 0), ('YOLO26s', '박스 탐지, flower 1클래스', 1), ('합치기', '중복과 타일 조각 제거', 0), ('크롭', '긴 변 1.25배', 0), ('EfficientNetV2-S', '봉오리 / 개화중 / 만개', 1)]) + '</div>'
@@ -124,11 +179,12 @@ body = f'''<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name
 {sec(4, '임시 라벨', fig('pseudo_sample_top.jpg', '판정에 쓴 표본 시트의 윗부분. 빨간 박스가 임시 라벨입니다.') + ul(PSEUDO))}
 {sec(5, '단계 분류 (라벨 박스 기준)', '<p>' + inline(CLS_NOTE) + '</p>' + html_table(*T_CLS) + html_table(*T_CM))}
 {sec(6, '탐지와 분류 연결', '<p>박스와 단계가 모두 맞아야 정답으로 칩니다.</p>' + html_table(*T_E2E) + '<h3>' + inline('§third_pseudo§ 단계별 test') + '</h3>' + html_table(*T_E3) + html_table(*T_E4) + '<div class="note">' + inline(E2E_NOTE) + '</div>')}
-{sec(7, '한계', ul(LIMITS))}
-{sec(8, '다음 단계', '<ol>' + ''.join(f'<li>{inline(x)}</li>' for x in NEXT) + '</ol>')}
-{sec(9, '파일', html_table(['경로', '내용'], FILES))}
+{sec(7, '예측 결과 평가', '<p>' + inline('후보 조합(§third_pseudo§ + §effnetv2s_r2§)의 test 사진 17장 결과입니다.') + '</p>' + html_table(*T_RES) + html_table(*T_CAUSE) + html_table(*T_SWEEP) + ul(EVAL_NUM) + '<h3>사진별</h3>' + html_table(*T_PHOTO) + '<h3>시트를 본 인상</h3><div class="note">Claude가 썸네일로 본 인상입니다. 사람 판정이 아니고, 이전에도 이런 인상이 틀린 적이 있습니다.</div>' + ul(EVAL_LOOK) + '<div class="figs">' + fig('fn_top.jpg', '놓침 시트 윗부분 (§M001§~§M021§)') + fig('fp_top.jpg', '오탐 시트 윗부분 (§F001§~§F021§)') + '</div><h3>v2 전에 볼 점</h3>' + ul(EVAL_V2))}
+{sec(8, '한계', ul(LIMITS))}
+{sec(9, '다음 단계', '<ol>' + ''.join(f'<li>{inline(x)}</li>' for x in NEXT) + '</ol>')}
+{sec(10, '파일', html_table(['경로', '내용'], FILES))}
 <footer>표의 수치는 scripts/52_report.py가 평가 결과 파일에서 읽어 만들었습니다.</footer></div></body></html>'''
 (VER / 'REPORT.html').write_text(body, encoding='utf-8')
-md = [f'# {TITLE}', '', '> 그림을 포함한 리포트: [REPORT.html](REPORT.html) (꽃 모델 버전 목록: [README](../README.md))', '', md_table(['항목', '내용'], INFO), '', '## 요약'] + [f'- {x}' for x in SUM] + ['', f'**{LIMITS[0].replace("**", "")}**', '', '## 구조', S_FLOW, '', '세그멘테이션과 ID는 없습니다. 예측은 박스 목록이고 분류는 박스마다 바로 합니다.', '', '## 데이터', md_table(*T_LABEL), '', md_table(*T_REVIEW), '', '## 탐지 모델 비교', md_table(*T_DET), '', md_table(*T_BY), '', '![third_pseudo, 135048](report/third_135048.jpg)', '', DET_NOTE, '', '## 임시 라벨'] + [f'- {x}' for x in PSEUDO] + ['', '## 단계 분류 (라벨 박스 기준)', CLS_NOTE, '', md_table(*T_CLS), '', '## 탐지와 분류 연결', md_table(*T_E2E), '', md_table(*T_E3), '', md_table(*T_E4), '', E2E_NOTE, '', '## 한계'] + [f'- {x}' for x in LIMITS] + ['', '## 다음 단계'] + [f'{i + 1}. {x}' for i, x in enumerate(NEXT)] + ['', '## 파일', md_table(['경로', '내용'], FILES), '']
+md = [f'# {TITLE}', '', '> 그림을 포함한 리포트: [REPORT.html](REPORT.html) (꽃 모델 버전 목록: [README](../README.md))', '', md_table(['항목', '내용'], INFO), '', '## 요약'] + [f'- {x}' for x in SUM] + ['', f'**{LIMITS[0].replace("**", "")}**', '', '## 구조', S_FLOW, '', '세그멘테이션과 ID는 없습니다. 예측은 박스 목록이고 분류는 박스마다 바로 합니다.', '', '## 데이터', md_table(*T_LABEL), '', md_table(*T_REVIEW), '', '## 탐지 모델 비교', md_table(*T_DET), '', md_table(*T_BY), '', '![third_pseudo, 135048](report/third_135048.jpg)', '', DET_NOTE, '', '## 임시 라벨'] + [f'- {x}' for x in PSEUDO] + ['', '## 단계 분류 (라벨 박스 기준)', CLS_NOTE, '', md_table(*T_CLS), '', '## 탐지와 분류 연결', md_table(*T_E2E), '', md_table(*T_E3), '', md_table(*T_E4), '', E2E_NOTE, '', '## 예측 결과 평가', md_table(*T_RES), '', md_table(*T_CAUSE), '', md_table(*T_SWEEP), ''] + [f'- {x}' for x in EVAL_NUM] + ['', md_table(*T_PHOTO), '', '### 시트를 본 인상', 'Claude가 썸네일로 본 인상입니다. 사람 판정이 아닙니다.', ''] + [f'- {x}' for x in EVAL_LOOK] + ['', '### v2 전에 볼 점'] + [f'- {x}' for x in EVAL_V2] + ['', '## 한계'] + [f'- {x}' for x in LIMITS] + ['', '## 다음 단계'] + [f'{i + 1}. {x}' for i, x in enumerate(NEXT)] + ['', '## 파일', md_table(['경로', '내용'], FILES), '']
 (VER / 'REPORT.md').write_text('\n'.join(md).replace('§', chr(96)), encoding='utf-8')
 print('html', (VER / 'REPORT.html').stat().st_size, 'md', (VER / 'REPORT.md').stat().st_size, 'leftover', body.count('§'))
