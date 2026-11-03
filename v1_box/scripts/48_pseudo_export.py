@@ -8,7 +8,7 @@ from common import *
 
 ap = argparse.ArgumentParser(); ap.add_argument('preds'); ap.add_argument('--out', default=str(V11 / 'data_pseudo')); ap.add_argument('--hi', type=float, default=0.7); ap.add_argument('--lo', type=float, default=0.3)
 ap.add_argument('--tile', type=int, default=1280); ap.add_argument('--overlap', type=float, default=0.25); ap.add_argument('--imgsz', type=int, default=640); a = ap.parse_args()
-OUT = Path(a.out); GRAY = (114, 114, 114); P = json.loads(Path(a.preds).read_text(encoding='utf-8'))
+OUT = Path(a.out).resolve(); GRAY = (114, 114, 114); P = json.loads(Path(a.preds).read_text(encoding='utf-8'))
 if OUT.exists():
     shutil.rmtree(OUT)
 (OUT / 'det' / 'images' / 'train').mkdir(parents=True); (OUT / 'det' / 'labels' / 'train').mkdir(parents=True)

@@ -4,9 +4,10 @@ import argparse, json, random
 from common import *
 from PIL import Image, ImageDraw, ImageOps
 
-ap = argparse.ArgumentParser(); ap.add_argument('preds'); ap.add_argument('out'); ap.add_argument('--n', type=int, default=100); ap.add_argument('--hi', type=float, default=0.7); ap.add_argument('--seed', type=int, default=0)
+ap = argparse.ArgumentParser(); ap.add_argument('preds'); ap.add_argument('out'); ap.add_argument('--n', type=int, default=100); ap.add_argument('--hi', type=float, default=0.7); ap.add_argument('--seed', type=int, default=0); ap.add_argument('--new-since', help='이 예측의 hi 이상 후보와 겹치지 않는 새 후보만 뽑는다')
 ap.add_argument('--cell', type=int, default=150); ap.add_argument('--cols', type=int, default=7); a = ap.parse_args()
-P = json.loads(Path(a.preds).read_text(encoding='utf-8')); man = {m['photo']: m for m in read(MANIFEST)}; rows = read(ANN); pool = []
+P = json.loads(Path(a.preds).read_text(encoding='utf-8')); man = {m['photo']: m for m in read(MANIFEST)}; rows = read(ANN) + read(IGN) + read(REJ); pool = []
+OLD = json.loads(Path(a.new_since).read_text(encoding='utf-8')) if a.new_since else {}
 
 
 def ov(p, q):
@@ -19,6 +20,7 @@ for f, ps in P.items():
     if man[f]['label_status'] != 'partial':
         continue
     gs = [box(r) for r in rows if r['photo'] == f]
+    gs += [q[:4] for q in OLD.get(f, []) if q[4] >= a.hi]
     for p in ps:
         if p[4] >= a.hi and not any(i >= 0.3 or s >= 0.6 for i, s in (ov(p[:4], g) for g in gs)):
             pool.append((f, p))
