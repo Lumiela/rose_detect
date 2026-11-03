@@ -9,7 +9,7 @@ import numpy as np
 from PIL import Image, ImageOps
 from ultralytics import YOLO
 
-ap = argparse.ArgumentParser(); ap.add_argument('weights'); ap.add_argument('out'); ap.add_argument('--splits', default='val,test'); ap.add_argument('--batch', type=int, default=32); ap.add_argument('--iou', type=float, default=0.5)
+ap = argparse.ArgumentParser(); ap.add_argument('weights'); ap.add_argument('out'); ap.add_argument('--splits', default='val,test'); ap.add_argument('--batch', type=int, default=32); ap.add_argument('--iou', type=float, default=0.5); ap.add_argument('--all-status', action='store_true', help='부분 라벨 사진까지 예측 (라벨 후보용)'); ap.add_argument('--keep-fragments', action='store_true', help='타일 경계 조각을 거르지 않음 (비교용)')
 ap.add_argument('--tile', type=int, default=1280); ap.add_argument('--overlap', type=float, default=0.25); ap.add_argument('--imgsz', type=int, default=640); a = ap.parse_args()
 OUT = Path(a.out); OUT.mkdir(parents=True, exist_ok=True); model = YOLO(a.weights)
 man = read(MANIFEST); anns, igns = C.defaultdict(list), C.defaultdict(list)
@@ -33,7 +33,11 @@ def iou_ios(b, B):
 
 def merge(P):
     # 겹친 타일의 중복과, 타일 경계에서 잘려 큰 박스 안에 들어간 조각을 뺀다
-    P = P[np.argsort(-P[:, 4])]; keep = []
+    # P 열: x0 y0 x1 y1 conf 조각. 조각은 사진 가장자리가 아닌 타일 경계에 닿은 박스다
+    whole = P[P[:, 5] == 0, :4]
+    if not a.keep_fragments and len(whole):
+        P = np.array([p for p in P if not p[5] or iou_ios(p[:4], whole)[1].max() < 0.5]).reshape(-1, 6)
+    P = P[np.argsort(-P[:, 4]), :5]; keep = []
     for p in P:
         if keep:
             io, os_ = iou_ios(p[:4], np.array(keep)[:, :4])
@@ -54,8 +58,10 @@ def detect(f):
     for i in range(0, len(views), a.batch):
         vs = views[i:i + a.batch]
         for v, r in zip(vs, model.predict([t[0] for t in vs], imgsz=a.imgsz, conf=0.05, iou=0.6, verbose=False)):
-            b = r.boxes.xyxy.cpu().numpy() * v[3]; b[:, [0, 2]] += v[1]; b[:, [1, 3]] += v[2]
-            P.append(np.c_[b, r.boxes.conf.cpu().numpy()])
+            t = r.boxes.xyxy.cpu().numpy(); b = t * v[3]; b[:, [0, 2]] += v[1]; b[:, [1, 3]] += v[2]
+            full = v[3] != a.tile / a.imgsz; m = 2
+            frag = np.zeros(len(b), bool) if full else ((t[:, 0] <= m) & (v[1] > 0)) | ((t[:, 1] <= m) & (v[2] > 0)) | ((t[:, 2] >= a.imgsz - m) & (v[1] + a.tile < im.width)) | ((t[:, 3] >= a.imgsz - m) & (v[2] + a.tile < im.height))
+            P.append(np.c_[b, r.boxes.conf.cpu().numpy(), frag])
     P = merge(np.vstack(P)) if P else np.zeros((0, 5))
     P[:, [0, 2]] = P[:, [0, 2]].clip(0, im.width); P[:, [1, 3]] = P[:, [1, 3]].clip(0, im.height)
     return P
@@ -101,7 +107,7 @@ def score(ph, preds, conf):
 
 res = {}; conf = None
 for split in a.splits.split(','):
-    ph = [m for m in man if m['split'] == split and m['label_status'] in COMPLETE]; preds = {m['photo']: detect(m['photo']) for m in ph}
+    ph = [m for m in man if m['split'] == split and m['label_status'] != 'excluded' and (a.all_status or m['label_status'] in COMPLETE)]; preds = {m['photo']: detect(m['photo']) for m in ph}
     (OUT / f'preds_{split}.json').write_text(json.dumps({k: np.round(v, 3).tolist() for k, v in preds.items()}), encoding='utf-8')
     sweep = {c: score(ph, preds, c) for c in (0.05, 0.1, 0.2, 0.3, 0.4, 0.5, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8, 0.85)}
     if conf is None:
