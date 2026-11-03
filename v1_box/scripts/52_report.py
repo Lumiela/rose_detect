@@ -114,7 +114,7 @@ plain = lambda s: s.replace('§', '')
 fig = lambda n, cap: f'<figure><img src="{uri(n)}" alt="{plain(cap)}"><figcaption>{inline(cap)}</figcaption></figure>'
 LEG = '초록 맞게 찾음, 빨강 오탐, 파랑 놓침'
 kp = lambda a, b: f'<div class="kpi"><b>{a}</b><span>{b}</span></div>'
-head = (ROOT / 'v10_farm_infer/REPORT.html').read_text(encoding='utf-8'); STYLE = head[head.find('<style>'):head.find('</style>')] + 'td code{word-break:normal;white-space:nowrap}</style>'
+STYLE = '<style>' + (FIG / 'style.css').read_text(encoding='utf-8') + 'td code{word-break:normal;white-space:nowrap}</style>'
 TITLE = '꽃 모델 v1 리포트: 박스 탐지와 개화 단계 분류'
 body = f'''<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>꽃 모델 v1 리포트</title>{STYLE}</head><body><div class="wrap"><header><div class="eyebrow">Helpai · 스마트큐브 꽃 상태 확인 · 2026-11-02 ~ 03</div><h1>{TITLE}</h1><p class="lead">잎과 별개로 꽃을 찾고 봉오리, 개화중, 만개를 판정하는 첫 버전입니다. 비교할 이전 버전이 없어 현재 성능과 한계를 정리했습니다.</p><div class="meta"><span>후보: {inline('§det/third_pseudo§ + §cls/effnetv2s_r2§')}</span><span>평가: 휴대폰 사진, 사진 단위, IoU 0.5</span><span>최종 확정 전</span></div><div class="nav"><a href="../README.md">꽃 모델 버전 목록</a><a href="README.md">상세 기록</a></div></header>
 {sec(0, '요약', '<div class="kpis">' + kp(f3(ch('third', 'test')['f1']), f"test 탐지 F1 (정밀도 {f3(ch('third', 'test')['precision'])}, 재현율 {f3(ch('third', 'test')['recall'])})") + kp(f3(e['macro_f1']), '탐지 + 단계 test 매크로 F1') + kp(f"<s>{E2E['first']['test']['count_mae_per_photo'][0]:.2f} →</s> {e['count_mae_per_photo'][0]:.2f}", '사진당 봉오리 개수 오차') + kp(f3(e['recall'][1]), '가장 약한 개화중 재현율') + '</div>' + ul(SUM) + '<div class="note">' + inline(LIMITS[0]) + '</div>')}

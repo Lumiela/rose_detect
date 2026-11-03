@@ -1,0 +1,13 @@
+# 압축 파일과 재생성 파일은 올리지 않는다
+*.zip
+*.rar
+*.7z
+*.tar
+*.tgz
+*.gz
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+*.cache
+# 사전학습 가중치: 서버에 복사본만 둔다
+common/weights/

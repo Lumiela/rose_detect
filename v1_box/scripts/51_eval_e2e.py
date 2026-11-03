@@ -4,7 +4,7 @@
 # 사용: python 51_eval_e2e.py <탐지 평가 폴더> <분류 가중치> [--splits val,test] [--iou 0.5]
 import argparse, collections as C, json, sys
 from common import *
-sys.path.insert(0, str(ROOT / 'common'))
+sys.path.insert(0, str(FLOWER / 'common'))
 import paths  # noqa: F401  (opencv 우회가 먼저)
 import numpy as np
 import torch, torch.nn as nn

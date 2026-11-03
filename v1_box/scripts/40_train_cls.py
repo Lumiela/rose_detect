@@ -3,7 +3,7 @@
 # 사용: python 40_train_cls.py [--epochs 20] [--name effnetv2s]
 import argparse, collections as C, csv, json, sys, time
 from common import *
-sys.path.insert(0, str(ROOT / 'common'))
+sys.path.insert(0, str(FLOWER / 'common'))
 import paths  # noqa: F401  (opencv 우회가 먼저)
 import numpy as np
 import torch, torch.nn as nn

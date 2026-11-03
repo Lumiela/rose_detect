@@ -1,11 +1,11 @@
 # 사람 판정으로 바뀐 라벨을 눈으로 다시 확인하는 HTML을 만든다.
 # review_changes.html: 변경 항목별 크롭과 판정 / review_photos.html: 사진 전체에 최종 라벨 표시 / checklist.csv: 번호 목록
-# 기준은 판정 반영 전 커밋의 라벨이다. 사용: python 47_review_page.py [--base 23c69237f] [--out runs/review_check]
+# 기준은 판정 반영 전 커밋의 라벨이다. 사용: python 47_review_page.py [--base 3d8a17430] [--out runs/review_check]
 import argparse, base64, collections as C, csv, html, io, json, subprocess
 from common import *
 from PIL import Image, ImageDraw, ImageOps
 
-ap = argparse.ArgumentParser(); ap.add_argument('--base', default='23c69237f'); ap.add_argument('--out', default=str(VER / 'runs' / 'review_check')); a = ap.parse_args()
+ap = argparse.ArgumentParser(); ap.add_argument('--base', default='3d8a17430'); ap.add_argument('--out', default=str(VER / 'runs' / 'review_check')); a = ap.parse_args()
 OUT = Path(a.out); OUT.mkdir(parents=True, exist_ok=True)
 SPLITS = [('test', 'T', 'review_test_errors_r1.csv', 'review_test_fp.json', 'review_test_fn.json'),
           ('val', 'V', 'review_val_errors_r3.csv', 'review_val_fp.json', 'review_val_fn.json'),
@@ -22,7 +22,7 @@ CODE = {'봉오리': 'B', '개화중': 'O', '만개': 'F'}
 
 
 def old(name):
-    t = subprocess.run(['git', 'show', f'{a.base}:v11_flower/labels/{name}'], cwd=ROOT, capture_output=True, check=True).stdout.decode('utf-8-sig')
+    t = subprocess.run(['git', 'show', f'{a.base}:v1_box/labels/{name}'], cwd=FLOWER, capture_output=True, check=True).stdout.decode('utf-8-sig')
     return list(csv.DictReader(io.StringIO(t)))
 
 

@@ -1,6 +1,6 @@
 # 꽃 모델 v1: 박스 탐지와 개화 단계 분류
 
-처음에는 `v11_flower`라는 이름이었고, 잎과 다른 모델이라 2026-11-03에 `flower/v1_box`로 옮겼습니다. 커밋 기록과 `runs/`의 설정 파일에는 옛 경로가 남아 있습니다.
+처음에는 `v11_flower`라는 이름이었고, 잎과 다른 모델이라 2026-11-03에 별도 저장소 `/helpai-storage/flower_git`의 `v1_box`로 옮겼습니다. 커밋 메시지와 `runs/`의 설정 파일에는 옛 경로가 남아 있습니다.
 
 **상태: 시험 학습 중. test와 val 라벨 보완 완료, train 95장은 사람 검토 전**. 잎 모델(v8, v9)과 분리해서 관리합니다. 가중치는 `runs/`에 있고 최종 모델이 정해지면 커밋합니다.
 
@@ -17,7 +17,7 @@
 | `labels/ignore_regions.csv` | 판단이 어려워 학습에서 가리는 영역 |
 | `labels/photos.csv` | 사진 목록, 기기, 구간, 분할, 라벨 상태 |
 | `labels/drafts/` | 사진별 라벨 초안 |
-| `scripts/` | 초기화, 라벨 작업, 검수 이미지, 내보내기, 묶음 제작 |
+| `scripts/` | 초기화, 라벨 작업, 검수 이미지, 내보내기, 학습, 평가, 리포트 |
 | `sheets/review_test/` | test 검수 이미지 |
 
 사진은 `../common/photos/`에 있습니다. 좌표는 EXIF 회전을 적용한 기준입니다. 이 폴더의 `photos/`와 라벨이 기준이고, 로컬 PC의 `v11_flower`는 라벨 작업을 시작한 곳입니다.
@@ -71,7 +71,6 @@ python scripts/10_view_photo.py 134908    # 격자 보기 생성
 python scripts/11_apply_draft.py 134908   # 초안을 라벨 원본에 반영
 python scripts/12_review_sheets.py test   # 검수 이미지 생성
 python scripts/20_export.py               # data/det, data/cls 생성
-python scripts/30_package.py              # 서버 업로드 묶음 생성
 python scripts/40_train_cls.py            # 단계 분류 학습 (서버)
 python scripts/41_train_det.py first      # 꽃 탐지 학습 (서버)
 python scripts/42_eval_det.py <가중치> <출력 폴더>   # 사진 단위 탐지 평가

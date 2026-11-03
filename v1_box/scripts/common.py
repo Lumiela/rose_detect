@@ -3,14 +3,9 @@ import csv, sys
 from pathlib import Path
 
 VER = Path(__file__).resolve().parents[1]
-FLOWER = VER.parent  # 꽃 모델 폴더. 버전이 함께 쓰는 사진은 common/에 둔다
-ROOT = FLOWER.parent  # 저장소 루트. 잎 모델과 함께 쓰는 common/, weights/가 있다
-FARM = ROOT / '장미농장'
-PHOTOS = FARM / '미니장미 사진'
-LEGACY_CSV = PHOTOS / '꽃봉오리' / 'labels.csv'
-if (FLOWER / 'common' / 'photos').is_dir():  # 서버
-    PHOTOS = FLOWER / 'common' / 'photos'
-    LEGACY_CSV = FLOWER / 'common' / 'labels_20261030.csv'
+FLOWER = VER.parent  # 저장소 루트. 버전이 함께 쓰는 사진, 도구, 사전학습 가중치는 common/에 둔다
+PHOTOS = FLOWER / 'common' / 'photos'
+LEGACY_CSV = FLOWER / 'common' / 'labels_20261030.csv'
 ANN = VER / 'labels' / 'annotations.csv'
 IGN = VER / 'labels' / 'ignore_regions.csv'
 REJ = VER / 'labels' / 'pseudo_rejected.csv'  # 사람이 꽃이 아니라고 판정한 임시 라벨
