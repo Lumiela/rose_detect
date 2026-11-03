@@ -1,4 +1,6 @@
-# v11_flower: 꽃 탐지와 개화 단계 분류 데이터
+# 꽃 모델 v1: 박스 탐지와 개화 단계 분류
+
+처음에는 `v11_flower`라는 이름이었고, 잎과 다른 모델이라 2026-11-03에 `flower/v1_box`로 옮겼습니다. 커밋 기록과 `runs/`의 설정 파일에는 옛 경로가 남아 있습니다.
 
 **상태: 시험 학습 중. test와 val 라벨 보완 완료, train 95장은 사람 검토 전**. 잎 모델(v8, v9)과 분리해서 관리합니다. 가중치는 `runs/`에 있고 최종 모델이 정해지면 커밋합니다.
 
@@ -18,7 +20,7 @@
 | `scripts/` | 초기화, 라벨 작업, 검수 이미지, 내보내기, 묶음 제작 |
 | `sheets/review_test/` | test 검수 이미지 |
 
-사진은 `photos/`에 있습니다. 좌표는 EXIF 회전을 적용한 기준입니다. 이 폴더의 `photos/`와 라벨이 기준이고, 로컬 PC의 `v11_flower`는 라벨 작업을 시작한 곳입니다.
+사진은 `../common/photos/`에 있습니다. 좌표는 EXIF 회전을 적용한 기준입니다. 이 폴더의 `photos/`와 라벨이 기준이고, 로컬 PC의 `v11_flower`는 라벨 작업을 시작한 곳입니다.
 
 `crops/`(기존 크롭), `cube/`(큐브 사진), `data/`(내보낸 학습 데이터)는 서버 폴더에만 두고 Git에 넣지 않습니다.
 
@@ -195,8 +197,8 @@ python scripts/49_pseudo_sample.py <예측> <폴더>  # 임시 라벨 무작위 
 ## 남은 일
 1. `third_pseudo`의 test 오류 시트 판정 (`runs/det/third_pseudo/eval/sheet_test_fp.jpg`, `sheet_test_fn.jpg`)
 2. train 13장 미탐 시트 판정 반영 (선택)
-3. 꽃받침 포함 여부와 박스, 세그멘테이션 비교
+3. 꽃받침 포함 여부 비교
 4. 꽃이 찍힌 새 ESP32 사진 확보 (현재 내부 카메라 성능 측정과 독립 test용)
 
 ## 위치 정보
-`photos/`의 S25 Ultra 사진 83장에 있던 EXIF GPS 좌표를 커밋 전에 지웠습니다. 화소와 EXIF 회전값은 그대로입니다. `model/v11_flower/v11_upload.zip`에는 좌표가 남아 있으니 그대로 공유하지 않습니다.
+`../common/photos/`의 S25 Ultra 사진 83장에 있던 EXIF GPS 좌표를 커밋 전에 지웠습니다. 화소와 EXIF 회전값은 그대로입니다. `model/v11_flower/v11_upload.zip`에는 좌표가 남아 있으니 그대로 공유하지 않습니다.

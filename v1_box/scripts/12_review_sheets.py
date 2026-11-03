@@ -5,7 +5,7 @@ from PIL import Image, ImageDraw, ImageFont, ImageOps
 from common import *
 
 split = sys.argv[1] if len(sys.argv) > 1 else 'test'
-OUT = V11 / 'sheets' / f'review_{split}'; OUT.mkdir(parents=True, exist_ok=True)
+OUT = VER / 'sheets' / f'review_{split}'; OUT.mkdir(parents=True, exist_ok=True)
 COL = {'봉오리': (255, 40, 40), '개화중': (255, 220, 0), '만개': (0, 220, 255)}
 anns, igns = C.defaultdict(list), C.defaultdict(list)
 for r in read(ANN):

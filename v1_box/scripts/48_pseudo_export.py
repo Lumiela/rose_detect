@@ -6,7 +6,7 @@ import argparse, collections as C, json, os, shutil
 from PIL import Image, ImageDraw, ImageOps
 from common import *
 
-ap = argparse.ArgumentParser(); ap.add_argument('preds'); ap.add_argument('--out', default=str(V11 / 'data_pseudo')); ap.add_argument('--hi', type=float, default=0.7); ap.add_argument('--lo', type=float, default=0.3)
+ap = argparse.ArgumentParser(); ap.add_argument('preds'); ap.add_argument('--out', default=str(VER / 'data_pseudo')); ap.add_argument('--hi', type=float, default=0.7); ap.add_argument('--lo', type=float, default=0.3)
 ap.add_argument('--tile', type=int, default=1280); ap.add_argument('--overlap', type=float, default=0.25); ap.add_argument('--imgsz', type=int, default=640); a = ap.parse_args()
 OUT = Path(a.out).resolve(); GRAY = (114, 114, 114); P = json.loads(Path(a.preds).read_text(encoding='utf-8'))
 if OUT.exists():
@@ -78,6 +78,6 @@ for m in read(MANIFEST):
     tile(im, 0, 0, max(im.size), boxes, ign, f'{stem}_full', st)
 for kind in ('images', 'labels'):
     for s in ('val', 'test'):
-        os.symlink(V11 / 'data' / 'det' / kind / s, OUT / 'det' / kind / s)
+        os.symlink(VER / 'data' / 'det' / kind / s, OUT / 'det' / kind / s)
 (OUT / 'det' / 'flower.yaml').write_text(f"path: {(OUT / 'det').as_posix()}\ntrain: images/train\nval: images/val\ntest: images/test\nnames:\n  0: flower\n", encoding='utf-8')
 print(dict(st), flush=True)

@@ -3,7 +3,7 @@
 # 사용: python 42_eval_det.py <가중치> <출력 폴더> [--splits val,test] [--batch 32]
 import argparse, collections as C, json, sys
 from common import *
-sys.path.insert(0, str(V11.parent / 'common'))
+sys.path.insert(0, str(ROOT / 'common'))
 import paths  # noqa: F401  (opencv 우회가 먼저)
 import numpy as np
 from PIL import Image, ImageOps

@@ -3,7 +3,7 @@
 # 사용: python 40_train_cls.py [--epochs 20] [--name effnetv2s]
 import argparse, collections as C, csv, json, sys, time
 from common import *
-sys.path.insert(0, str(V11.parent / 'common'))
+sys.path.insert(0, str(ROOT / 'common'))
 import paths  # noqa: F401  (opencv 우회가 먼저)
 import numpy as np
 import torch, torch.nn as nn
@@ -13,7 +13,7 @@ from torchvision.models import efficientnet_v2_s
 
 ap = argparse.ArgumentParser(); ap.add_argument('--epochs', type=int, default=20); ap.add_argument('--name', default='effnetv2s'); ap.add_argument('--eval-only', default='', help='학습 없이 best.pt를 평가하고 결과 이름에 붙일 표시')
 a = ap.parse_args()
-DATA = V11 / 'data' / 'cls'; out = V11 / 'runs' / 'cls' / a.name; out.mkdir(parents=True, exist_ok=True)
+DATA = VER / 'data' / 'cls'; out = VER / 'runs' / 'cls' / a.name; out.mkdir(parents=True, exist_ok=True)
 MEAN, STD = (0.485, 0.456, 0.406), (0.229, 0.224, 0.225)
 SIZE = (224, 224)
 TF_TRAIN = T.Compose([T.Resize(SIZE), T.RandomHorizontalFlip(), T.RandomVerticalFlip(), T.ColorJitter(0.1, 0.1, 0.1, 0.01), T.ToTensor(), T.Normalize(MEAN, STD)])

@@ -5,7 +5,7 @@ from PIL import Image, ImageOps, ImageDraw, ImageFont
 from common import *
 
 COL = {'봉오리': (255, 40, 40), '개화중': (255, 220, 0), '만개': (0, 220, 255)}
-ap = argparse.ArgumentParser(); ap.add_argument('photo'); ap.add_argument('out', nargs='?', default=str(V11 / 'sheets' / 'work'))
+ap = argparse.ArgumentParser(); ap.add_argument('photo'); ap.add_argument('out', nargs='?', default=str(VER / 'sheets' / 'work'))
 ap.add_argument('--scale', type=float, default=0.5); ap.add_argument('--grid', type=int, default=250)
 a = ap.parse_args()
 names = [p.name for p in PHOTOS.glob('*.jpg')]

@@ -5,7 +5,7 @@ import argparse, base64, collections as C, csv, html, io, json, subprocess
 from common import *
 from PIL import Image, ImageDraw, ImageOps
 
-ap = argparse.ArgumentParser(); ap.add_argument('--base', default='23c69237f'); ap.add_argument('--out', default=str(V11 / 'runs' / 'review_check')); a = ap.parse_args()
+ap = argparse.ArgumentParser(); ap.add_argument('--base', default='23c69237f'); ap.add_argument('--out', default=str(VER / 'runs' / 'review_check')); a = ap.parse_args()
 OUT = Path(a.out); OUT.mkdir(parents=True, exist_ok=True)
 SPLITS = [('test', 'T', 'review_test_errors_r1.csv', 'review_test_fp.json', 'review_test_fn.json'),
           ('val', 'V', 'review_val_errors_r3.csv', 'review_val_fp.json', 'review_val_fn.json'),
@@ -22,7 +22,7 @@ CODE = {'봉오리': 'B', '개화중': 'O', '만개': 'F'}
 
 
 def old(name):
-    t = subprocess.run(['git', 'show', f'{a.base}:v11_flower/labels/{name}'], cwd=V11.parent, capture_output=True, check=True).stdout.decode('utf-8-sig')
+    t = subprocess.run(['git', 'show', f'{a.base}:v11_flower/labels/{name}'], cwd=ROOT, capture_output=True, check=True).stdout.decode('utf-8-sig')
     return list(csv.DictReader(io.StringIO(t)))
 
 
@@ -43,7 +43,7 @@ def item(split, cat, photo, boxes, judge, ref, note=''):
 
 
 for split, pre, errs, jf, jn in SPLITS:
-    E = read(V11 / 'labels' / errs); JF = json.loads((V11 / 'labels' / jf).read_text(encoding='utf-8')); JN = json.loads((V11 / 'labels' / jn).read_text(encoding='utf-8')) if jn else {}
+    E = read(VER / 'labels' / errs); JF = json.loads((VER / 'labels' / jf).read_text(encoding='utf-8')); JN = json.loads((VER / 'labels' / jn).read_text(encoding='utf-8')) if jn else {}
     fp = {r['id']: r for r in E if r['kind'] == 'fp'}; fn = {(r['photo'], r['ann_id']): r['id'] for r in E if r['kind'] == 'fn'}; in_split = lambda f: man[f]['split'] == split
     shown_ign = set()
     for r in cur:

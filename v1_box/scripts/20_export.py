@@ -8,7 +8,7 @@ import argparse, collections as C, json, shutil
 from PIL import Image, ImageDraw, ImageOps
 from common import *
 
-ap = argparse.ArgumentParser(); ap.add_argument('--out', default=str(V11 / 'data')); ap.add_argument('--splits', default='train,val,test')
+ap = argparse.ArgumentParser(); ap.add_argument('--out', default=str(VER / 'data')); ap.add_argument('--splits', default='train,val,test')
 ap.add_argument('--tile', type=int, default=1280); ap.add_argument('--overlap', type=float, default=0.25); ap.add_argument('--imgsz', type=int, default=640)
 ap.add_argument('--limit', type=int, default=0, help='시험용: 분할마다 사진 수 제한'); a = ap.parse_args()
 OUT = Path(a.out); splits = a.splits.split(',')

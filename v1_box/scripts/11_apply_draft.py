@@ -6,7 +6,7 @@ import json, sys
 from common import *
 
 CODE = {'B': '봉오리', 'O': '개화중', 'F': '만개'}
-files = sorted((V11 / 'labels' / 'drafts').glob('*.json'))
+files = sorted((VER / 'labels' / 'drafts').glob('*.json'))
 if sys.argv[1:]:
     files = [p for p in files if any(k in p.name for k in sys.argv[1:])]
 ann, ign, man = read(ANN), read(IGN), read(MANIFEST)
