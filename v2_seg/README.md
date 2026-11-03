@@ -10,7 +10,7 @@
 ```bash
 python scripts/40_flower_ids.py <사진 또는 폴더> <출력 폴더> --sheet    # 임의의 사진
 python scripts/40_flower_ids.py --splits val,test runs/ids/first --sheet   # 라벨이 완성된 분할
-python scripts/41_check_ids.py runs/ids/first/flowers.json runs/seg/first/eval   # 평가 결과와 일치 확인
+python scripts/41_check_ids.py runs/ids/first/flowers.json runs/seg/first/eval   # 평가 결과와 일치, 합쳐짐과 쪼개짐 확인 (check.json)
 ```
 | 출력 | 내용 |
 |---|---|
@@ -23,6 +23,7 @@ python scripts/41_check_ids.py runs/ids/first/flowers.json runs/seg/first/eval  
 - **ID는 사진 한 장 안에서만 유효합니다.** 다른 사진의 같은 꽃과 이어지지 않으므로 시간에 따른 추적은 아직 할 수 없습니다.
 - **단계 확률:** 봉오리는 맞은 경우와 틀린 경우의 중앙값이 0.526과 0.515로 거의 같습니다. 봉오리 예측의 신뢰도로 쓰지 않습니다.
 - **볼록도:** 0.8 미만 14개를 봤더니 대부분 잎에 가려진 한 송이였습니다. 합쳐진 꽃을 찾는 기준으로 쓰지 않습니다.
+- **중복 라벨:** 라벨 원본에 IoU 0.5 이상인 박스 쌍이 10개 있습니다 (리포트 09). 아직 고치지 않았습니다.
 - `scripts/infer.py`는 `31_eval_seg.py`와 `40_flower_ids.py`가 함께 쓰는 추론 코드입니다.
 
 ## 마스크 라벨
