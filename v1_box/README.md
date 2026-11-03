@@ -77,6 +77,7 @@ python scripts/43_error_sheet.py <출력 폴더> test    # 오탐, 미탐 시트
 python scripts/44_apply_review.py <판정> <errors>    # 오탐 판정 반영 (한 번만)
 python scripts/45_apply_review_fn.py <판정> <errors> # 미탐 판정 반영 (한 번만)
 python scripts/46_apply_review_fp.py <판정> <errors> # 오탐 판정 반영, 45 다음에 (한 번만)
+python scripts/47_review_page.py          # 판정 반영 결과 검수 페이지 (runs/review_check)
 ```
 40번대를 뺀 스크립트는 Pillow만 있으면 실행됩니다.
 
