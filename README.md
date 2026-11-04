@@ -4,8 +4,8 @@
 ## 버전
 | 버전 | 구조 | 상태 |
 |---|---|---|
-| [v1_box](v1_box/README.md) ([리포트](v1_box/REPORT.md)) | 박스 탐지 + 박스별 단계 분류 | 현재 후보 `det/third_pseudo`, `cls/effnetv2s_r2` |
-| [v2_seg](v2_seg/README.md) ([리포트](v2_seg/REPORT.md)) | 세그멘테이션 + ID + ID별 단계 분류 | 학습, v1 비교, ID 부여 완료. 최종 모델 미정 |
+| [v1_box](v1_box/README.md) ([리포트](v1_box/REPORT.md)) | 박스 탐지 + 박스별 단계 분류 | 후보 `det/third_pseudo`, `cls/effnetv2s_r2`. v2와 비교 완료, 최종 모델 미정 |
+| [v2_seg](v2_seg/README.md) ([리포트](v2_seg/REPORT.md)) | 세그멘테이션 + ID + ID별 단계 분류 | 학습, ID 부여, [v1 비교](v2_seg/COMPARE.md) 완료. 최종 모델 미정 |
 
 점수는 모두 휴대폰 사진 기준입니다. 큐브 내부 ESP32 사진으로는 아직 평가하지 않았습니다.
 

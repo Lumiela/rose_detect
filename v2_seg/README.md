@@ -1,5 +1,5 @@
 # 꽃 모델 v2: 세그멘테이션, ID, ID별 단계 분류
-**상태: 세그멘테이션 학습, v1 비교, ID 부여 완료. 최종 모델은 아직 정하지 않았습니다.** 결과는 [리포트](REPORT.md)를 봅니다.
+**상태: 세그멘테이션 학습, v1 비교, ID 부여 완료. 최종 모델은 아직 정하지 않았습니다.** 결과는 [리포트](REPORT.md), v1과의 비교는 [비교 페이지](COMPARE.md)를 봅니다.
 
 ## 구조
 1. **세그멘테이션:** YOLO26s-seg, `flower` 1클래스. 봉오리, 개화중, 만개를 모두 합쳐 학습합니다.
@@ -41,5 +41,7 @@ python scripts/20_export_seg.py                                  # 학습 데이
 python scripts/30_train_seg.py first --epochs 80                 # 학습
 python scripts/31_eval_seg.py runs/seg/first/weights/best.pt runs/seg/first/eval   # 사진 단위 평가
 python scripts/32_compare_v1.py runs/seg/first/eval runs/seg/first/compare         # v1 비교
+python scripts/34_time_models.py                                 # 추론 시간
+python scripts/33_compare_page.py                                # v1, v2 비교 페이지
 python scripts/12_report.py                                      # 리포트
 ```
