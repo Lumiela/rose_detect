@@ -32,6 +32,11 @@ for name, csv_, js in ROUNDS:
                         best, bv = r, io + os_
                 if best is not None:
                     checks[(e['photo'], best['ann_id'])].append(f'{name}:{k}:{v}')
+if (L / 'user_check_r1.json').exists():  # train 표본 확인. 임시 라벨도 번호로 바로 찾는다
+    UC = json.loads((L / 'user_check_r1.json').read_text(encoding='utf-8'))
+    for r in read(L / 'user_check_r1.csv'):
+        if r['id'] in UC:
+            checks[(r['photo'], r['key'])].append(f"check1:{r['id']}:{UC[r['id']]}")
 rows = []
 for r in ann:
     a = r['ann_id']; k = a[0]; key = (r['photo'], a); ch = checks.get(key, []); s = man[r['photo']]['split']
@@ -42,6 +47,6 @@ for x in rows:
     x['mask'] = 'SAM2.1 초안, 사람 확인 없음' if (x['photo'], x['key']) in mk else ''
 for m in masks:
     if m['source'] == 'pseudo':
-        b = m['box']; rows.append(dict(photo=m['photo'], split=m['split'], key=m['key'], stage='', source='pseudo', box_by=BOX['X'][0], box_how=BOX['X'][1].replace('§', ''), user_check='없음', detail='', mask='SAM2.1 초안, 사람 확인 없음', x0=b[0], y0=b[1], x1=b[2], y1=b[3]))
+        b = m['box']; rows.append(dict(photo=m['photo'], split=m['split'], key=m['key'], stage='', source='pseudo', box_by=BOX['X'][0], box_how=BOX['X'][1].replace('§', ''), user_check='칸 판정' if checks.get((m['photo'], m['key'])) else '없음', detail=' | '.join(checks.get((m['photo'], m['key']), [])), mask='SAM2.1 초안, 사람 확인 없음', x0=b[0], y0=b[1], x1=b[2], y1=b[3]))
 write(L / 'provenance.csv', list(rows[0]), rows)
 print(len(rows), sorted(C.Counter((r['split'], r['source'], r['user_check']) for r in rows).items()), C.Counter((r['split'], r['user_check']) for r in rows))
