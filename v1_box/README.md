@@ -14,6 +14,8 @@
 | 경로 | 내용 |
 |---|---|
 | `labels/annotations.csv` | 라벨 원본. 사진별 박스, 단계, 출처(`legacy`, `draft`) |
+| `labels/provenance.csv` | 라벨별로 만든 쪽과 사용자 확인 이력 (`scripts/57_provenance.py`) |
+| `labels/user_check_r1.csv` | train 사용자 확인 표본 (`scripts/58_user_check_sheet.py`, 판정은 `user_check_r1.json`) |
 | `labels/ignore_regions.csv` | 판단이 어려워 학습에서 가리는 영역 |
 | `labels/photos.csv` | 사진 목록, 기기, 구간, 분할, 라벨 상태 |
 | `labels/drafts/` | 사진별 라벨 초안 |
@@ -59,7 +61,7 @@
 | train 13장 | 라벨 초안, 오탐 시트 반영 (미탐 시트 판정 전) | 349 | 20 | 11 |
 | train 95장 | 기존 박스만 (누락 있음) | 737 | 85 | 57 |
 
-- `legacy`: 2026-10-30에 꽃잎 색 후보를 썸네일로 판정한 라벨. 초록 봉오리, 흰 꽃, 작은 대상이 빠져 있습니다.
+- `legacy`: 2026-10-30에 스크립트가 꽃잎 색 후보를 뽑고 Claude가 썸네일로 판정한 라벨. 사용자 판정이 아닙니다. 초록 봉오리, 흰 꽃, 작은 대상이 빠져 있습니다.
 - `draft`: Claude가 격자 이미지를 보고 만든 초안. 잎을 봉오리로 잘못 잡았거나 빽빽한 사진에서 작은 봉오리를 놓친 경우가 있을 수 있습니다.
 - 탐지 내보내기는 `draft`, `verified` 사진만 씁니다.
 - train 초안의 만개가 11개뿐입니다. 탐지는 1클래스라 영향이 작지만, 단계 분류에는 기존 라벨의 크롭도 함께 씁니다.
