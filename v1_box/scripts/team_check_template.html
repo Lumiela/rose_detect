@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>꽃 라벨 판정 __REVIEWER__</title>
+<style>
+:root{color-scheme:dark}*{box-sizing:border-box}body{margin:0;background:#16181c;color:#eee;font:15px/1.55 -apple-system,"Segoe UI","Malgun Gothic",sans-serif}
+.bar{position:sticky;top:0;z-index:5;background:#22252b;padding:8px 12px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;box-shadow:0 1px 4px #0008}
+.bar b{font-size:16px}.bar .info{color:#c5c8ce;font-size:13px;flex:1;min-width:190px}
+button{font:inherit;border:0;border-radius:5px;padding:6px 11px;cursor:pointer;background:#3a3e46;color:#fff}button:hover{background:#4a4f59}button.go{background:#2f7d45}button.go:hover{background:#38934f}
+.wrap{max-width:1180px;margin:0 auto;padding:12px}details.help{background:#22252b;border-radius:8px;padding:10px 14px;margin-bottom:12px}details.help summary{cursor:pointer;font-weight:700}
+.ex{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;margin:10px 0}.ex figure{margin:0;background:#16181c;border-radius:6px;overflow:hidden}.ex img{width:100%;display:block}.ex figcaption{padding:4px 7px;font-size:13px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(215px,1fr));gap:9px}.card{background:#22252b;border-radius:7px;overflow:hidden;border:3px solid transparent}.card.done{opacity:.72}.card.mark{opacity:1}.head{display:flex;justify-content:space-between;padding:3px 8px;font-weight:700}.head span+span{font-weight:400;color:#c5c8ce;font-size:13px}
+canvas{width:100%;display:block}.btns{display:flex;flex-wrap:wrap;gap:4px;padding:6px}.btns button{padding:6px 8px;font-size:13px}.foot{text-align:center;padding:18px}.foot button{padding:11px 20px;font-size:16px}.warn{background:#6b3a00;padding:8px 12px;border-radius:6px;margin-bottom:10px;display:none}
+.finish{background:#1f3a28;border-radius:8px;padding:14px 16px;margin-top:12px;display:none}
+</style></head><body>
+<div class="bar"><b>꽃 라벨 판정 __REVIEWER__</b><button id="prev">이전 쪽</button><span class="info" id="info"></span><button id="dl" class="go">결과 내려받기</button><button id="up">결과 불러오기</button><input id="file" type="file" accept=".json" hidden></div>
+<div class="wrap">
+<div class="warn" id="warn">이 브라우저에서는 자동 저장을 쓸 수 없습니다. 창을 닫기 전에 꼭 결과를 내려받아 주세요.</div>
+<details class="help" open><summary>판정 방법 (처음 한 번 읽어 주세요)</summary>
+<p>파란 박스 안의 대상이 꽃이나 봉오리인지 판정합니다. 모델이 찾았지만 라벨이 없는 곳입니다. 사진 속 꽃 전부를 찾는 것이 목표라 <b>작은 봉오리와 초록 봉오리도 꽃입니다.</b></p>
+<ul><li><b>봉오리이면 누르지 않습니다.</b> 쪽 맨 아래 버튼을 누르면 나머지 칸이 봉오리로 기록됩니다. 다른 경우에만 칸의 버튼을 누르고, 다시 누르면 취소됩니다. <b>칸을 하나씩 보고 넘어가 주세요.</b></li>
+<li><b>아님:</b> 잎, 줄기, 새순, 화분, 바닥 등 꽃이 아닌 것</li><li><b>개화중:</b> 꽃잎이 풀리기 시작해 컵이나 나선 모양이고 아직 납작하지 않음</li><li><b>만개:</b> 꽃잎이 활짝 펴져 납작하거나 수술이 보임</li><li><b>일부:</b> 꽃은 맞지만 박스가 일부만 잡았거나, 사진 가장자리에서 잘림, 또는 박스 하나에 꽃이 둘 이상</li><li><b>알수없음:</b> 흐리거나 가려서 판단하기 어려움. <b>애매하면 억지로 고르지 말고 이 버튼을 누릅니다.</b></li></ul>
+<div class="ex" id="ex"></div>
+<p>판정은 이 브라우저에 자동 저장되지만, <b>중간중간 "결과 내려받기"로 파일을 받아 두세요.</b> 다 끝나면 받은 JSON 파일을 전달해 주세요. 이 HTML 파일은 다른 곳에 올리거나 공유하지 말아 주세요.</p></details>
+<div class="grid" id="grid"></div><div class="foot" id="foot"></div>
+<div class="finish" id="finish"><b>모든 칸을 확인했습니다. 감사합니다.</b><br>위의 "결과 내려받기"를 눌러 받은 JSON 파일을 전달해 주세요.</div>
+</div>
+<img id="sheet" hidden alt="" src="data:image/jpeg;base64,__SHEET__">
+<script>
+const DATA=__DATA__;
+const KEY='flower_check_'+DATA.round+'_'+DATA.reviewer;const PER=50;const DEFAULT='봉오리';const OPTS=['아님','개화중','만개','일부','알수없음'];
+const COL={'아님':'#c93a3a','알수없음':'#b58f00','일부':'#c76b00','개화중':'#2a7fd6','만개':'#a14bc7'};
+let st={v:{},page:0,started:Date.now(),seconds:0};let storageOk=true;
+function load(){try{const t=localStorage.getItem(KEY);if(t)st=Object.assign(st,JSON.parse(t));localStorage.setItem(KEY+'_test','1');localStorage.removeItem(KEY+'_test')}catch(e){storageOk=false;document.getElementById('warn').style.display='block'}}
+function save(){if(!storageOk)return;try{localStorage.setItem(KEY,JSON.stringify(st))}catch(e){storageOk=false;document.getElementById('warn').style.display='block'}}
+const pages=Math.ceil(DATA.cells.length/PER);const sheet=document.getElementById('sheet');let tick=Date.now();
+function info(){const n=Object.keys(st.v).length;document.getElementById('info').textContent=(st.page+1)+'쪽 / '+pages+'쪽 · 확인 '+n+' / '+DATA.cells.length+'칸'}
+function card(id,i){const d=document.createElement('div');d.className='card';const h=document.createElement('div');h.className='head';const a=document.createElement('span');a.textContent=id;h.append(a);
+ const c=document.createElement('canvas');c.width=DATA.cell;c.height=DATA.cell;c.getContext('2d').drawImage(sheet,(i%DATA.cols)*DATA.cell,Math.floor(i/DATA.cols)*DATA.cell,DATA.cell,DATA.cell,0,0,DATA.cell,DATA.cell);
+ const b=document.createElement('div');b.className='btns';const paint=()=>{const v=st.v[id];d.style.borderColor=v&&v!==DEFAULT?COL[v]:'transparent';d.className='card'+(v?(v===DEFAULT?' done':' mark'):'');[...b.children].forEach(x=>{x.style.background=v===x.textContent?COL[x.textContent]:''})};
+ OPTS.forEach(o=>{const x=document.createElement('button');x.textContent=o;x.onclick=()=>{if(st.v[id]===o)delete st.v[id];else st.v[id]=o;paint();info();save()};b.append(x)});paint();d.append(h,c,b);return d}
+function draw(){const g=document.getElementById('grid');g.innerHTML='';const s=st.page*PER;DATA.cells.slice(s,s+PER).forEach((id,k)=>g.append(card(id,s+k)));const f=document.getElementById('foot');f.innerHTML='';const last=st.page>=pages-1;const x=document.createElement('button');x.className='go';x.textContent=last?'이 쪽 나머지를 봉오리로 하고 끝내기':'이 쪽 나머지를 봉오리로 하고 다음 쪽';x.onclick=()=>{DATA.cells.slice(s,s+PER).forEach(id=>{if(!st.v[id])st.v[id]=DEFAULT});if(!last){st.page++;save();draw();window.scrollTo(0,0)}else{save();draw();document.getElementById('finish').style.display='block'}};f.append(x);info();if(Object.keys(st.v).length>=DATA.cells.length)document.getElementById('finish').style.display='block'}
+setInterval(()=>{if(!document.hidden){st.seconds+=5;save()}},5000);
+document.getElementById('prev').onclick=()=>{if(st.page>0){st.page--;save();draw();window.scrollTo(0,0)}};
+document.getElementById('dl').onclick=()=>{const r={reviewer:DATA.reviewer,round:DATA.round,total:DATA.cells.length,judged:Object.keys(st.v).length,seconds:st.seconds,saved_at:new Date().toISOString(),verdicts:st.v};const u=URL.createObjectURL(new Blob([JSON.stringify(r,null,0)],{type:'application/json'}));const a=document.createElement('a');a.href=u;a.download='판정결과_'+DATA.round+'_'+DATA.reviewer+'.json';document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),2000)};
+document.getElementById('up').onclick=()=>document.getElementById('file').click();
+document.getElementById('file').onchange=async e=>{const f=e.target.files[0];if(!f)return;try{const r=JSON.parse(await f.text());if(r.reviewer!==DATA.reviewer||r.round!==DATA.round){alert('이 파일의 결과가 아닙니다.');return}st.v=r.verdicts||{};st.seconds=r.seconds||0;save();draw();alert('불러왔습니다.')}catch(x){alert('파일을 읽을 수 없습니다.')}};
+const ex=document.getElementById('ex');DATA.examples.forEach(x=>{const f=document.createElement('figure');const i=new Image();i.src='data:image/jpeg;base64,'+x.img;i.alt=x.cap;const c=document.createElement('figcaption');c.textContent=x.cap;f.append(i,c);ex.append(f)});
+load();const start=()=>draw();if(sheet.complete&&sheet.naturalWidth)start();else sheet.onload=start;
+</script></body></html>
