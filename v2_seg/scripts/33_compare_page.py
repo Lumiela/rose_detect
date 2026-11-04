@@ -75,13 +75,14 @@ T_ST = (['단계', 'v1 재현율', 'v2 재현율', 'v1 정밀도', 'v2 정밀도
 T_ARCH = (['항목', 'v1', 'v2'], [['구조', 'YOLO26s 박스 탐지 + 박스별 분류', 'YOLO26s-seg + ID + ID별 분류'], ['꽃마다 마스크', '없음', '있음'], ['ID 부여', '아직 없음 (붙일 수 있음)', '구현됨'], ['단계 분류기', '§cls/effnetv2s_r2§', '같음'], ['가중치 파일', f"{TM['v1']['size_mb']}MB", f"{TM['v2']['size_mb']}MB"], ['파라미터 (추론 기준)', f"{TM['v1']['params_fused'] / 1e4:,.0f}만", f"{TM['v2']['params_fused'] / 1e4:,.0f}만"], [f"모델 추론 (사진 1장, 화면 {TM['v1']['views']}개, V100)", f"{TM['v1']['median_s']:.3f}초", f"{TM['v2']['median_s']:.3f}초"]], ())
 pm1 = {r['photo']: r for r in t1['per_photo']}; pm2 = {r['photo']: r for r in t2['per_photo']}
 T_PH = (['사진', '구간', '라벨', 'v1 찾음', 'v2 찾음', 'v1 오탐', 'v2 오탐', 'v1 놓침', 'v2 놓침', '봉오리 라벨', 'v1 봉오리', 'v2 봉오리'], [[f'§{f[9:15]}§', pm1[f]['block'].replace('test_', ''), pm1[f]['gt'], pm1[f]['tp'], pm2[f]['tp'], pm1[f]['fp'], pm2[f]['fp'], pm1[f]['gt'] - pm1[f]['tp'], pm2[f]['gt'] - pm2[f]['tp'], p1[f]['label'][0], p1[f]['pred'][0], p2[f]['pred'][0]] for f in PH if pm1[f]['gt'] or pm1[f]['fp'] or pm2[f]['fp']], tuple(range(2, 12)))
-JF = {(r['photo'], r['ann_id']) for r in read(V1 / 'labels/review_test_errors_r2.csv') if r['kind'] == 'fn'}; only2 = C.Counter(); both = only1 = 0
+JF = {(r['photo'], r['ann_id']) for r in read(V1 / 'labels/review_test_errors_r4.csv')}; only2 = C.Counter(); both = only1 = 0
 for f in PH:
     m1 = {r['ann_id'] for r in match(f, P1)[2]}; m2 = {r['ann_id'] for r in match(f, P2)[2]}; both += len(m1 & m2); only1 += len(m1 - m2)
     for r in GT[f]:
         if r['ann_id'] in m2 - m1:
             only2['added' if r['ann_id'][0] in 'TV' else 'judged' if (f, r['ann_id']) in JF else 'unjudged'] += 1
-T_MISS = (['놓침 비교', '개수'], [['둘 다 놓침', both], ['v1만 놓침', only1], ['v2만 놓침', sum(only2.values())], ['그중 판정으로 추가한 봉오리', only2['added']], ['그중 칸 판정을 받지 않은 라벨', only2['unjudged']]], (1,))
+assert only2['unjudged'] == 0
+T_MISS = (['놓침 비교', '개수'], [['둘 다 놓침', both], ['v1만 놓침', only1], ['v2만 놓침', sum(only2.values())], ['그중 판정으로 추가한 봉오리', only2['added']], ['그중 미판정 시트에서 사람이 확인한 라벨', only2['judged']], ['그중 아직 판정하지 않은 라벨', only2['unjudged']]], (1,))
 COLORS = dict(tp=(40, 220, 80), fp=(255, 40, 40), fn=(60, 140, 255))
 
 
@@ -96,9 +97,9 @@ def overlay(f, P, name, width=640):
 PAIRS = [('20261030_140433.jpg', 'v2가 봉오리를 더 놓친 사진'), ('20261030_135048.jpg', '노란 꽃 구간의 작은 봉오리'), ('20261030_134905.jpg', '큰 꽃은 v2가 찾고, 다른 라벨은 v1이 찾은 사진'), ('20261030_135052.jpg', '봉오리가 많은 사진')]; FIGS = []
 for f, cap in PAIRS:
     s = f[9:15]; FIGS.append((s, cap, overlay(f, P1, f'cmp_{s}_v1.jpg'), overlay(f, P2, f'cmp_{s}_v2.jpg')))
-SUMMARY = ['**확실한 차이는 test의 세 가지입니다.** v2는 정밀도가 높고, v1은 IoU 0.3 F1과 사진당 봉오리 개수가 낫습니다.', f"**IoU 0.5 F1은 차이가 확실하지 않습니다.** v1 {f3(t1['f1'])}, v2 {f3(t2['f1'])}이고, 구간이 0을 포함합니다.", f"**val에서는 거의 같습니다.** F1이 v1 {f3(v1['f1'])}, v2 {f3(v2['f1'])}이고, 봉오리 개수 오차도 {f2(ve1['count_mae_per_photo'][0])}, {f2(ve2['count_mae_per_photo'][0])}입니다.", f"**v2의 약점은 작은 봉오리이고 강점은 큰 꽃입니다.** 긴 변 80px 미만 재현율은 v1 {f3(t1['recall_by']['<80px'][0])}, v2 {f3(t2['recall_by']['<80px'][0])}이고, 160px 이상은 {f3(t1['recall_by']['>=160px'][0])}, {f3(t2['recall_by']['>=160px'][0])}입니다.", '**최종 모델은 아직 정하지 않았습니다.**']
+SUMMARY = ['**확실한 차이는 test의 세 가지입니다.** v2는 정밀도가 높고, v1은 IoU 0.3 F1과 사진당 봉오리 개수가 낫습니다.', f"**IoU 0.5 F1은 차이가 확실하지 않습니다.** v1 {f3(t1['f1'])}, v2 {f3(t2['f1'])}이고, 구간이 0을 포함합니다.", f"**val에서는 거의 같습니다.** F1이 v1 {f3(v1['f1'])}, v2 {f3(v2['f1'])}이고, 봉오리 개수 오차도 {f2(ve1['count_mae_per_photo'][0])}, {f2(ve2['count_mae_per_photo'][0])}입니다.", f"**v2의 약점은 작은 봉오리이고 강점은 큰 꽃입니다.** 긴 변 80px 미만 재현율은 v1 {f3(t1['recall_by']['<80px'][0])}, v2 {f3(t2['recall_by']['<80px'][0])}이고, 160px 이상은 {f3(t1['recall_by']['>=160px'][0])}, {f3(t2['recall_by']['>=160px'][0])}입니다.", f"**v2가 놓친 라벨은 실제 봉오리와 꽃입니다.** v2만 놓친 {sum(only2.values())}개 중 {only2['added']}개는 사람이 추가한 봉오리이고, 나머지 {only2['judged']}개도 칸 판정에서 맞다고 확인했습니다.", '**최종 모델은 아직 정하지 않았습니다.**']
 HOW = ['**같은 조건:** 같은 test, val 사진과 같은 라벨로 평가했고, 임계값은 val F1로 정한 0.65로 두 모델이 같습니다. IoU 0.5 이상이면 맞은 것으로 칩니다.', '**구간:** test 17장을 복원 추출해 4,000번 계산한 v1-v2 차이의 95% 구간입니다. 0을 포함하면 우연일 수 있어 "확실하지 않음"으로 적었습니다. 사진 수가 적어 대략적인 값입니다.', '**추가 라벨 제외:** 판정으로 추가한 봉오리 44개 중 43개의 박스가 v1 예측이라, 넣으면 v1에 유리합니다. 다만 사람이 확인한 진짜 봉오리라 빼면 v2에 유리합니다. 실제는 그 사이로 봅니다.', '**값의 출처:** 표의 값은 평가 결과 파일에서 읽었고, "추가 라벨 제외"와 구간은 저장된 예측으로 다시 계산했습니다. 반올림 때문에 v1 오탐이 1개 다를 수 있습니다.']
-LIM = [f"**v2만 놓친 {sum(only2.values())}개 중 {only2['unjudged']}개는 칸 판정을 받지 않았습니다.** test 사진 검수는 거쳤지만 잎이 섞여 있으면 v2의 재현율과 봉오리 개수 오차가 실제보다 나쁘게 나옵니다.", '**test 17장, val 8장 모두 휴대폰 사진입니다.** 큐브의 ESP32 카메라에서는 꽃 크기와 화질이 달라 이 비교가 바뀔 수 있습니다.', '**학습은 각 모델 한 번뿐입니다.** 씨앗을 바꾼 반복 학습이 없어 작은 차이는 우연일 수 있습니다.', '**마스크 정확도는 평가하지 못했습니다.** 사람이 그린 마스크 정답이 없어, 이 페이지의 비교는 모두 박스 기준입니다.', '**Jetson 추론 시간은 재지 않았습니다.** 표의 시간은 V100에서 잰 모델 추론만이고, 사진 열기, 화면 준비, 결과 합치기는 뺐습니다.']
+LIM = ['**test 17장, val 8장 모두 휴대폰 사진입니다.** 큐브의 ESP32 카메라에서는 꽃 크기와 화질이 달라 이 비교가 바뀔 수 있습니다.', '**학습은 각 모델 한 번뿐입니다.** 씨앗을 바꾼 반복 학습이 없어 작은 차이는 우연일 수 있습니다.', '**마스크 정확도는 평가하지 못했습니다.** 사람이 그린 마스크 정답이 없어, 이 페이지의 비교는 모두 박스 기준입니다.', '**Jetson 추론 시간은 재지 않았습니다.** 표의 시간은 V100에서 잰 모델 추론만이고, 사진 열기, 화면 준비, 결과 합치기는 뺐습니다.']
 T_DEC = (['방향', '장점', '단점'], [['**v2 유지, 재현율 개선** (Claude의 추천)', '요청한 세그멘테이션과 ID 구조 그대로이고 꽃마다 마스크가 있음', '재학습이 필요하고 나아진다는 보장이 없음'], ['**v1 사용, 박스에 ID 부여**', '지금 바로 봉오리를 더 잘 셈', '마스크가 없음. 단계 분류는 지금도 마스크를 쓰지 않으므로, 쓸 계획이 없다면 현실적인 선택']], ())
 (OUT / 'v1_v2.json').write_text(json.dumps(dict(test=T_TEST[:2], only_v2=only2, only_v1=only1, both=both, timing=TM), ensure_ascii=False, indent=1), encoding='utf-8')
 

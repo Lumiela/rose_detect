@@ -240,7 +240,7 @@ python scripts/49_pseudo_sample.py <예측> <폴더>  # 임시 라벨 무작위 
 | v2 `seg/first` | 0.974 | 0.806 | 0.882 | 0.892 | 0.764 | 6.06 |
 
 ## test 4차 판정: v2만 놓친 라벨 (2026-11-04)
-v1은 찾고 v2만 놓친 라벨 중 칸 판정을 받지 않은 35칸을 사용자가 판정했습니다 (`labels/review_test_u_r4.json`, `review_test_errors_r4.csv`, `scripts/56_apply_review_u.py`, 시트는 `../v2_seg/scripts/35_unjudged_sheet.py`). 32칸은 봉오리로 유지했고, `U012`는 개화중으로 고쳤으며, `U002`, `U003`은 일부만 보여 제외 영역으로 옮겼습니다. **이 칸들은 대부분 실제 봉오리이므로 v2의 놓침은 실제입니다.** 리포트와 비교 페이지는 아직 이 판정 전 값입니다.
+v1은 찾고 v2만 놓친 라벨 중 칸 판정을 받지 않은 35칸을 사용자가 판정했습니다 (`labels/review_test_u_r4.json`, `review_test_errors_r4.csv`, `scripts/56_apply_review_u.py`, 시트는 `../v2_seg/scripts/35_unjudged_sheet.py`). 32칸은 봉오리로 유지했고, `U012`는 개화중으로 고쳤으며, `U002`, `U003`은 일부만 보여 제외 영역으로 옮겼습니다. **이 칸들은 대부분 실제 봉오리이므로 v2의 놓침은 실제입니다.**
 
 | test | 정밀도 | 재현율 | F1 | F1 (IoU 0.3) | 매크로 F1 | 사진당 봉오리 개수 오차 |
 |---|---:|---:|---:|---:|---:|---:|

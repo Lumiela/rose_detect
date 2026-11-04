@@ -28,7 +28,7 @@ python scripts/41_check_ids.py runs/ids/first/flowers.json runs/seg/first/eval  
 ## 마스크 라벨
 - `labels/masks.jsonl`: 박스 프롬프트로 SAM2.1이 만든 초안입니다. **사람이 전부 보지 않았습니다.**
 - 박스 라벨 원본은 `../v1_box/labels/` 한 곳을 함께 씁니다.
-- 2026-11-04에 v1 라벨 원본에서 지운 박스의 마스크 16개를 뺐습니다 (`scripts/13_drop_masks.py`). 2차 판정으로 추가한 test 라벨 43개는 마스크가 없습니다. 모델은 정리 전 데이터로 학습했습니다.
+- 2026-11-04에 v1 라벨 원본에서 지운 박스의 마스크 18개를 뺐습니다 (`scripts/13_drop_masks.py`). 2차 판정으로 추가한 test 라벨 43개는 마스크가 없습니다. 모델은 정리 전 데이터로 학습했습니다.
 - 임시 라벨(`source=pseudo`)은 v1의 `third_pseudo`와 같은 출처이며, 판정한 표본 100개는 라벨 또는 제외 영역으로 옮겨 뺐습니다.
 
 ## 스크립트
