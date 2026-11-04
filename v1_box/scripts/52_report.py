@@ -7,8 +7,8 @@ from PIL import Image, ImageDraw, ImageOps
 
 R = VER / 'runs'; FIG = VER / 'report'; FIG.mkdir(exist_ok=True)
 J = lambda p: json.loads(Path(p).read_text(encoding='utf-8'))
-DET = dict(first=J(R / 'det/first/eval_r7/photo_metrics.json'), second=J(R / 'det/second/eval/photo_metrics.json'), third=J(R / 'det/third_pseudo/eval/photo_metrics.json'), fourth=J(R / 'det/fourth_pseudo/eval/photo_metrics.json'))
-E2E = dict(first=J(R / 'det/first/eval_r7/e2e_metrics.json'), third=J(R / 'det/third_pseudo/eval/e2e_metrics.json'), fourth=J(R / 'det/fourth_pseudo/eval/e2e_metrics.json'))
+DET = dict(first=J(R / 'det/first/eval_r8/photo_metrics.json'), second=J(R / 'det/second/eval/photo_metrics.json'), third=J(R / 'det/third_pseudo/eval/photo_metrics.json'), fourth=J(R / 'det/fourth_pseudo/eval/photo_metrics.json'))
+E2E = dict(first=J(R / 'det/first/eval_r8/e2e_metrics.json'), third=J(R / 'det/third_pseudo/eval/e2e_metrics.json'), fourth=J(R / 'det/fourth_pseudo/eval/e2e_metrics.json'))
 CLS = J(R / 'cls/effnetv2s_r2/metrics.json'); man = {m['photo']: m for m in read(MANIFEST)}; ann = read(ANN); ign = read(IGN)
 NAME = dict(first='§det/first§', second='§det/second§', third='§det/third_pseudo§', fourth='§det/fourth_pseudo§')
 DATA = dict(first='train 13장 초안', second='train 13장 보완', third='train 108장, 임시 라벨 3,380개', fourth='train 108장, 임시 라벨 4,171개 (2회차)')
@@ -51,7 +51,7 @@ def overlay(key, pdir, stem, width=640):
     name = f'{key}_{stem}.jpg'; im.save(FIG / name, quality=82); return name, n
 
 
-figs = {k: overlay(*k) for k in [('first', 'det/first/eval_r7', '135048'), ('third', 'det/third_pseudo/eval', '135048'), ('third', 'det/third_pseudo/eval', '135052')]}
+figs = {k: overlay(*k) for k in [('first', 'det/first/eval_r8', '135048'), ('third', 'det/third_pseudo/eval', '135048'), ('third', 'det/third_pseudo/eval', '135052')]}
 figs = {k[0] + k[2]: v for k, v in figs.items()}; print({k: dict(v[1]) for k, v in figs.items()})
 sh = Image.open(R / 'det/third_pseudo/pseudo_sample/sheet_pseudo_sample.jpg'); sh.crop((0, 0, sh.width, 450)).save(FIG / 'pseudo_sample_top.jpg', quality=82)
 
@@ -88,17 +88,17 @@ T_E2E = (['탐지 모델', 'val 매크로 F1', 'test 매크로 F1', 'test 95% �
 e = E2E['third']['test']
 T_E3 = (['단계', '재현율', '정밀도', 'F1'], [[s, f3(e['recall'][i]), f3(e['precision'][i]), f3(e['f1'][i])] for i, s in enumerate(STAGES)], (1, 2, 3))
 cm4 = e['confusion']; T_E4 = (['라벨 \\ 예측'] + STAGES + ['없음 (놓침)'], [[n] + cm4[i] for i, n in enumerate(STAGES + ['라벨 없음 (오탐)'])], (1, 2, 3, 4))
-T_REVIEW = (['대상', '판정 수', '반영'], [['test 오류 시트', '오탐 92, 미탐 141', '봉오리 42개 추가, 잎 8개 삭제, 제외 영역 24개 등'], ['val 오류 시트', '오탐 87, 미탐 29', '봉오리 28개 추가, 잎 7개 삭제, 제외 영역 18개 등'], ['train 13장 오탐 시트', '121 (전체 123)', '라벨 추가와 제외 영역'], ['임시 라벨 표본', '100', '봉오리 94개 추가, 제외 영역 5개, 차단 1개'], ['test 2차 오류 시트', '오탐 86, 미탐 81', '봉오리 43개 추가, 잎 3개 삭제, 제외 영역 8개 (1개는 다시 라벨로), 단계 1개 수정']], (1,))
+T_REVIEW = (['대상', '판정 수', '반영'], [['test 오류 시트', '오탐 92, 미탐 141', '봉오리 42개 추가, 잎 8개 삭제, 제외 영역 24개 등'], ['val 오류 시트', '오탐 87, 미탐 29', '봉오리 28개 추가, 잎 7개 삭제, 제외 영역 18개 등'], ['train 13장 오탐 시트', '121 (전체 123)', '라벨 추가와 제외 영역'], ['임시 라벨 표본', '100', '봉오리 94개 추가, 제외 영역 5개, 차단 1개'], ['test 2차 오류 시트', '오탐 86, 미탐 81', '봉오리 43개 추가, 잎 3개 삭제, 제외 영역 8개 (1개는 다시 라벨로), 단계 1개 수정'], ['§v2_seg§ 오탐 시트', '오탐 18', '봉오리 1개 추가, 제외 영역 5개']], (1,))
 ERR = read(R / 'det/third_pseudo/eval/errors_test.csv'); DUP = read(VER / 'labels/review_duplicates_r1.csv')
 LIMITS = ['**휴대폰 사진 기준입니다.** 하루, 한 농장에서 찍었고 큐브 내부 ESP32 사진으로는 평가하지 않았습니다. 타일 크기 1280도 2000×1500 사진에서 다시 확인해야 합니다.',
           '**test는 화분 단위로 분리되지 않았습니다.** 시각 구간으로 나눴고 같은 품종과 인접 재배대가 train에 있어, 점수가 실제보다 높을 수 있습니다.',
-          '**§third_pseudo§에 유리한 비교입니다.** 2차 판정에서 추가한 봉오리 43개의 박스가 §third_pseudo§의 예측이라 이 모델에서는 자동으로 정답이 되고, §first§의 점수는 내려갑니다. 추가 라벨을 뺀 비교는 §v2_seg§ 리포트에 있습니다.',
+          '**§third_pseudo§에 조금 유리한 비교입니다.** 2차 판정에서 추가한 봉오리 43개의 박스가 §third_pseudo§의 예측이라 이 모델에서는 자동으로 정답이 되고, §first§의 점수는 내려갑니다. v2의 오탐도 판정했고, 추가 라벨을 뺀 비교와 함께 §v2_seg§ 리포트에 있습니다.',
           '**임시 라벨은 대부분 사람이 보지 않았습니다.** 3,380개 중 100개만 판정했고, 정밀도만 추정했습니다. 임시 라벨이 놓친 꽃은 알 수 없습니다.',
           '**학습은 중복 라벨 정리 전 데이터로 했습니다.** 탐지 모델은 train의 중복 4쌍이 든 채로 학습했고, 분류기 단독 점수는 중복 정리와 2차 판정 전 크롭으로 잰 값입니다. 탐지 평가와 연결 평가는 최신 라벨로 다시 계산했습니다.', '**비슷한 사례가 1쌍 남아 있습니다.** train §141013§의 §D028§, §D041§은 같은 봉오리로 보이지만 IoU가 0.44라 이번 정리 대상이 아니었습니다.', '**분류기 개선은 확정할 수 없습니다.** test는 올랐지만 val은 내려갔고 구간이 겹칩니다. 개화중, 만개는 test 기준 35개, 44개뿐입니다.',
           '**추론 시간은 재지 않았습니다.** Jetson이나 큐브 환경 측정도 없습니다.',
           '**배포본이 없습니다.** 평가 스크립트만 있고, 사진을 넣으면 결과를 내는 실행 패키지는 만들지 않았습니다.']
-NEXT = ['§v2_seg§: 세그멘테이션, ID 부여, ID별 분류 구조로 전환', '§v2_seg§의 오탐 18칸을 판정해 v1, v2 비교 마무리', '개화중 분류 개선 (이번 연결 평가에서 가장 약한 단계)', '꽃이 찍힌 ESP32 사진 확보와 독립 평가']
-INFO = [['유형', '데이터 + 모델 (꽃 모델의 첫 버전)'], ['작업일', '2026-11-02 ~ 04'], ['후보 모델', '§det/third_pseudo§ + §cls/effnetv2s_r2§'], ['상태', '**후보 선정, 최종 확정 전** (v2 비교와 ESP32 평가 남음)'], ['옛 이름', '§v11_flower§']]
+NEXT = ['§v2_seg§: 세그멘테이션, ID 부여, ID별 분류 구조로 전환', 'v1, v2 중 쓸 모델 결정 (§v2_seg§ 리포트 참고)', '개화중 분류 개선 (이번 연결 평가에서 가장 약한 단계)', '꽃이 찍힌 ESP32 사진 확보와 독립 평가']
+INFO = [['유형', '데이터 + 모델 (꽃 모델의 첫 버전)'], ['작업일', '2026-11-02 ~ 04'], ['후보 모델', '§det/third_pseudo§ + §cls/effnetv2s_r2§'], ['상태', '**후보 선정, 최종 확정 전** (모델 결정과 ESP32 평가 남음)'], ['옛 이름', '§v11_flower§']]
 S_FLOW = '사진 → 1280 타일과 전체 축척을 640으로 → YOLO26s 박스 탐지 (§flower§ 1클래스) → 원본 좌표로 합치기 → 긴 변 1.25배 정사각 크롭 → EfficientNetV2-S → 봉오리 / 개화중 / 만개'
 SUM = ['농장 사진 143장 중 133장으로 꽃을 찾고 개화 단계를 판정하는 2단계 모델을 처음 만들었습니다.', f"후보 조합의 test 탐지 F1은 {f3(ch('third', 'test')['f1'])}, 단계까지 맞힌 매크로 F1은 {f3(e['macro_f1'])}입니다.", f"라벨이 일부만 있던 train 95장에 임시 라벨을 더한 결과, 재현율은 {f3(ch('first', 'test')['recall'])} → {f3(ch('third', 'test')['recall'])}, 사진당 봉오리 개수 오차는 {E2E['first']['test']['count_mae_per_photo'][0]:.2f} → {e['count_mae_per_photo'][0]:.2f}, 정밀도는 {f3(ch('first', 'test')['precision'])} → {f3(ch('third', 'test')['precision'])}입니다.", '**요청받은 세그멘테이션과 ID 구조가 아닙니다.** 박스별로 바로 분류하며, 세그멘테이션과 ID는 §v2_seg§에서 구현합니다.']
 PSEUDO = ['**판정 결과:** 봉오리 94, 흐려서 알 수 없음 3, 사진 가장자리에서 잘린 봉오리 2, 잎 1', '**꽃이나 봉오리인 비율:** 96% (95% 구간 90.2~98.4%)', '**전부 봉오리인 표본:** 기존 라벨과 겹치는 예측을 뺐기 때문으로 보이며, 후보 전체를 세지는 않았습니다. 개화중, 만개 학습에 도움이 된다고 볼 수 없습니다.', '**2회차 중단:** §third_pseudo§의 예측으로 다시 만든 §fourth_pseudo§는 val과 test 모두 낮아 채택하지 않았습니다. 원인은 분석하지 않았습니다.']
@@ -161,8 +161,8 @@ EVAL_LOOK = ['**오탐 86칸:** 봉오리 66, 잎 13, 알수없음 3, 잘린 봉
              f"**큰 꽃을 놓칩니다.** §M002§, §M003§, §M008§, §M009§, §M024§는 사람이 꽃으로 확인한 놓침입니다. 긴 변 160px 이상 재현율은 §first§ {f3(rb0['>=160px'][0])}, §third_pseudo§ {f3(rb['>=160px'][0])}입니다 (라벨 {rb['>=160px'][1]}개). §M024§(사진 §135030§)는 긴 변 1,830px로 타일(1280)보다 큽니다.",
              '**붙은 꽃을 한 박스로 묶습니다.** §F002§, §F005§는 사람 판정에서도 꽃으로 나왔고, 박스 하나에 두 송이가 들어 있습니다.',
              '**Claude의 인상과 사람 판정:** §F001§~§F014§는 잎이 많다는 인상대로 잎 8칸이었고, §F015§ 이후는 봉오리가 많다는 인상대로 72칸 중 63칸이 봉오리였습니다. 하지만 잎처럼 보인다고 적은 §M020§~§M023§은 **모두 봉오리였고**, §M060§만 잎이었습니다.']
-EVAL_V2 = ['큰 꽃 재현율, 붙은 꽃 분리, 사진당 개수 오차를 v2의 비교 항목으로 넣습니다.', '이번 판정은 v1의 오류만 본 것이라, v2의 오탐도 판정해야 두 모델을 공정하게 비교할 수 있습니다.', 'ESP32 사진에서 꽃이 몇 px로 찍히는지 확인해야, 작은 봉오리와 큰 꽃 중 무엇이 더 중요한지 판단할 수 있습니다.']
-L_ = VER / 'labels'; ROUNDS = [('test 1차, 오탐', '§det/first§', 'review_test_fp'), ('test 1차, 미탐', '§det/first§', 'review_test_fn'), ('val, 오탐', '§det/first§', 'review_val_fp'), ('val, 미탐', '§det/first§', 'review_val_fn'), ('train 13장, 오탐', '§det/first§', 'review_train_fp'), ('임시 라벨 표본', '§det/second§ 예측', 'review_pseudo_sample_r1'), ('test 2차, 오탐', '§det/third_pseudo§', 'review_test_fp_r2'), ('test 2차, 미탐', '§det/third_pseudo§', 'review_test_fn_r2')]
+EVAL_V2 = ['큰 꽃 재현율, 붙은 꽃 분리, 사진당 개수 오차를 v2의 비교 항목으로 넣습니다.', 'v2의 오탐 18칸도 판정해, 두 모델의 비교는 §v2_seg§ 리포트에 정리했습니다.', 'ESP32 사진에서 꽃이 몇 px로 찍히는지 확인해야, 작은 봉오리와 큰 꽃 중 무엇이 더 중요한지 판단할 수 있습니다.']
+L_ = VER / 'labels'; ROUNDS = [('test 1차, 오탐', '§det/first§', 'review_test_fp'), ('test 1차, 미탐', '§det/first§', 'review_test_fn'), ('val, 오탐', '§det/first§', 'review_val_fp'), ('val, 미탐', '§det/first§', 'review_val_fn'), ('train 13장, 오탐', '§det/first§', 'review_train_fp'), ('임시 라벨 표본', '§det/second§ 예측', 'review_pseudo_sample_r1'), ('test 2차, 오탐', '§det/third_pseudo§', 'review_test_fp_r2'), ('test 2차, 미탐', '§det/third_pseudo§', 'review_test_fn_r2'), ('test 3차, 오탐', '§v2_seg§ §seg/first§', 'review_test_fp_r3')]
 
 
 def vcat(v):
@@ -170,7 +170,7 @@ def vcat(v):
         return '봉오리'
     if v in ('잎', '줄기'):
         return '잎, 줄기'
-    if v in ('알수없음', '제외'):
+    if v in ('알수없음', '흐려서 알수없음', '제외'):
         return '알수없음'
     if v in ('꽃', '꽃 2개', '잎에 가려진 꽃') or v.startswith('개화중'):
         return '꽃'
@@ -180,10 +180,10 @@ def vcat(v):
 CATS = ['봉오리', '꽃', '잎, 줄기', '알수없음', '일부, 잘림']; RJ = [(a, b, json.loads((L_ / f'{c}.json').read_text(encoding='utf-8'))) for a, b, c in ROUNDS]
 T_LAB = (['판정 대상', '시트를 만든 모델'] + CATS + ['칸 수'], [[a, b] + [sum(vcat(v) == k for v in d.values()) for k in CATS] + [len(d)] for a, b, d in RJ] + [['합계', ''] + [sum(vcat(v) == k for _, _, d in RJ for v in d.values()) for k in CATS] + [sum(len(d) for _, _, d in RJ)]], (2, 3, 4, 5, 6, 7))
 assert all(sum(r[2:7]) == r[7] for r in T_LAB[1]); LAB_N = T_LAB[1][-1][7]; srcn = C.Counter(r['source'] for r in ann); revn = C.Counter(r['ann_id'][0] for r in ann if r['source'] == 'review')
-T_SRC = (['라벨 출처', '개수', '만든 과정'], [['§draft§', srcn['draft'], 'Claude가 격자 이미지를 보고 만든 초안 (사람 판정으로 고침)'], ['§legacy§', srcn['legacy'], '2026-10-30의 꽃잎 색 후보를 썸네일로 판정한 박스'], ['§review§ (§R§)', revn['R'], '1차 오류 시트 판정으로 추가'], ['§review§ (§P§)', revn['P'], '임시 라벨 표본 판정으로 추가'], ['§review§ (§T§)', revn['T'], '2차 오류 시트 판정으로 추가']], (1,))
+T_SRC = (['라벨 출처', '개수', '만든 과정'], [['§draft§', srcn['draft'], 'Claude가 격자 이미지를 보고 만든 초안 (사람 판정으로 고침)'], ['§legacy§', srcn['legacy'], '2026-10-30의 꽃잎 색 후보를 썸네일로 판정한 박스'], ['§review§ (§R§)', revn['R'], '1차 오류 시트 판정으로 추가'], ['§review§ (§P§)', revn['P'], '임시 라벨 표본 판정으로 추가'], ['§review§ (§T§)', revn['T'], '2차 오류 시트 판정으로 추가'], ['§review§ (§V§)', revn['V'], '§v2_seg§ 오탐 시트 판정으로 추가']], (1,))
 LAB_STEPS = ['**1. Claude 초안:** Claude가 사진을 격자로 나눠 보고 박스와 단계를 적습니다 (§draft§).', '**2. 규칙 확인:** 작은 봉오리 포함, 개화중과 만개의 경계, 둥근 초록 대상은 봉오리, 꽃자리 없음 등은 사용자가 정했습니다.', '**3. 사진 전체 검수:** 사용자가 test 17장을 사진 단위로 봤습니다. 수정 없이 통과해 §verified§가 됐습니다.', '**4. 오류 시트 제작:** 모델이 틀린 곳을 스크립트가 번호 칸으로 잘라 줍니다. Claude는 시트를 먼저 보고 인상을 적지만, **이 인상으로 라벨을 바꾸지 않습니다.**', '**5. 사람 판정:** 사용자가 칸마다 봉오리, 꽃, 잎, 알수없음 등을 판정합니다. 라벨 수정의 근거는 이 판정입니다.', '**6. 반영과 재평가:** Claude가 칸 수를 시트와 맞춘 뒤 스크립트로 라벨에 반영하고, 평가를 다시 돌립니다. 판정 원본은 §labels/review_*.json§과 §review_*_errors_*.csv§에 남습니다.']
-LAB_FIND = [f'**사용자가 판정한 칸은 모두 {LAB_N}개입니다.** test 17장 사진 검수와 라벨 규칙 결정은 이 수에 들어 있지 않습니다.', '**칸 판정이 사진 검수보다 많이 찾았습니다.** test 17장은 사진 검수에서 수정이 없었지만, 칸 판정으로 빠진 봉오리 85개(1차 42, 2차 43)를 추가하고 잎 11개(1차 8, 2차 3)를 지웠습니다.', '**Claude의 판단도 사람이 고쳤습니다.** 2차에서 Claude가 잎처럼 보인다고 적은 §M020§~§M023§은 모두 봉오리였습니다.', '**판정에서 걸러지지 않은 오류도 있었습니다.** Claude 초안의 중복 박스 10쌍은 사진 검수를 통과했고, ID 결과를 라벨과 맞춰 보다가 뒤늦게 찾았습니다. 사용자 승인 후 지웠습니다.', '**판정한 번호는 그 회차 시트의 번호입니다.** 회차마다 번호가 새로 매겨지므로 다른 회차의 같은 번호와는 다른 칸입니다.']
-LAB_NOT = ['**train 95장:** 사람이 사진 단위로 보지 않았고, 임시 라벨 3,380개 중 100개만 판정했습니다.', '**val 8장, train 13장:** 사진 단위 검수 없이 오류 시트로만 고쳤습니다. train 13장의 미탐 시트는 판정하지 않았습니다.', '**§v2_seg§의 마스크:** SAM 초안이고 사람 판정이 없습니다.', '**§v2_seg§의 오탐:** 18칸이 아직 판정 전입니다.']
+LAB_FIND = [f'**사용자가 판정한 칸은 모두 {LAB_N}개입니다.** test 17장 사진 검수와 라벨 규칙 결정은 이 수에 들어 있지 않습니다.', '**칸 판정이 사진 검수보다 많이 찾았습니다.** test 17장은 사진 검수에서 수정이 없었지만, 칸 판정으로 빠진 봉오리 86개(1차 42, 2차 43, 3차 1)를 추가하고 잎 11개(1차 8, 2차 3)를 지웠습니다.', '**Claude의 판단도 사람이 고쳤습니다.** 2차에서 Claude가 잎처럼 보인다고 적은 §M020§~§M023§은 모두 봉오리였습니다.', '**판정에서 걸러지지 않은 오류도 있었습니다.** Claude 초안의 중복 박스 10쌍은 사진 검수를 통과했고, ID 결과를 라벨과 맞춰 보다가 뒤늦게 찾았습니다. 사용자 승인 후 지웠습니다.', '**판정한 번호는 그 회차 시트의 번호입니다.** 회차마다 번호가 새로 매겨지므로 다른 회차의 같은 번호와는 다른 칸입니다.']
+LAB_NOT = ['**train 95장:** 사람이 사진 단위로 보지 않았고, 임시 라벨 3,380개 중 100개만 판정했습니다.', '**val 8장, train 13장:** 사진 단위 검수 없이 오류 시트로만 고쳤습니다. train 13장의 미탐 시트는 판정하지 않았습니다.', '**§v2_seg§의 마스크:** SAM 초안이고 사람 판정이 없습니다.']
 
 
 

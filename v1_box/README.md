@@ -232,7 +232,7 @@ python scripts/49_pseudo_sample.py <예측> <폴더>  # 임시 라벨 무작위 
 | `det/fourth_pseudo` | 0.736 → 0.817 | 0.796 → 0.819 | 0.765 → 0.818 |
 
 ## test 3차 판정: v2 오탐 (2026-11-04)
-`v2_seg`의 오탐 시트 18칸을 사용자가 판정했습니다 (`labels/review_test_fp_r3.json`, `review_test_errors_r3.csv`, `scripts/55_apply_review_v2.py`). 잎 6, 알수없음과 잘린 봉오리 5(제외 영역), 라벨이 이미 있는 꽃 6, 새 봉오리 1입니다. 리포트는 아직 이 판정을 반영하지 않았습니다.
+`v2_seg`의 오탐 시트 18칸을 사용자가 판정했습니다 (`labels/review_test_fp_r3.json`, `review_test_errors_r3.csv`, `scripts/55_apply_review_v2.py`). 잎 6, 알수없음과 잘린 봉오리 5(제외 영역), 라벨이 이미 있는 꽃 6, 새 봉오리 1입니다.
 
 | test | 정밀도 | 재현율 | F1 | F1 (IoU 0.3) | 매크로 F1 | 사진당 봉오리 개수 오차 |
 |---|---:|---:|---:|---:|---:|---:|
