@@ -11,3 +11,5 @@ __pycache__/
 *.cache
 # 사전학습 가중치: 서버에 복사본만 둔다
 common/weights/
+# 사람 판정 파일: 농장 사진 조각이 들어 있어 서버에만 둔다. 결과는 labels에 둔다
+human_label/*/html/

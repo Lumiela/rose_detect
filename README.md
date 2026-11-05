@@ -6,12 +6,14 @@
 |---|---|---|
 | [v1_box](v1_box/README.md) ([리포트](v1_box/REPORT.md)) | 박스 탐지 + 박스별 단계 분류 | 후보 `det/third_pseudo`, `cls/effnetv2s_r2`. v2와 비교 완료, 최종 모델 미정 |
 | [v2_seg](v2_seg/README.md) ([리포트](v2_seg/REPORT.md)) | 세그멘테이션 + ID + ID별 단계 분류 | 학습, ID 부여, [v1 비교](v2_seg/COMPARE.md) 완료. 최종 모델 미정 |
+| [v3_recall](v3_recall/README.md) ([리포트](v3_recall/REPORT.md)) | 세그멘테이션 + ID + ID별 단계 분류, 팀 교차 판정 라벨 | A_base 학습과 test 평가 완료, 최종 모델 미정 |
 
 점수는 모두 휴대폰 사진 기준입니다. 큐브 내부 ESP32 사진으로는 아직 평가하지 않았습니다.
 
 ## 폴더 규칙
 - **리포트:** 중요 작업이 끝날 때 작성 여부를 사용자에게 먼저 묻고, 버전 폴더의 `REPORT.html`과 요약 `REPORT.md`에 씁니다.
 - **`common/`:** 버전이 함께 쓰는 사진과 처음 라벨. `common/photos/`는 EXIF 위치 정보를 지운 사본입니다.
-- **`vN_이름/`:** 버전마다 한 폴더. 이전 버전은 고치지 않습니다. 다만 박스 라벨 원본은 `v1_box/labels/` 한 곳을 모든 버전이 함께 쓰고, 라벨 수정은 여기에 합니다.
+- **`vN_이름/`:** 버전마다 한 폴더. 이전 버전은 고치지 않습니다. 라벨은 최신 버전 폴더에 두고, 이전 버전의 라벨은 고정합니다. `v1_box/labels/`는 v1, v2가 쓰는 원본이고, 최신 라벨은 `v3_recall/labels/`입니다.
 - **태그:** 잎 모델의 `v1`~`v10`과 겹치지 않게 `flower-vN`으로 답니다. 아직 단 태그는 없습니다.
+- **`human_label/`:** 팀원 판정 파일과 받은 결과. 회차별로 `html/`, `labels/`를 둡니다.
 - **사전학습 가중치:** 서버의 `common/weights/`에 복사본을 두고 git에는 넣지 않습니다.
