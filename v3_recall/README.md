@@ -16,6 +16,13 @@ v1_box/labels를 복사해 사람 판정을 반영한 사본입니다. v1_box/la
 
 판정 원본은 ../human_label/에 있습니다.
 
+## 카메라별 설정
+`cameras.json`에 카메라별 타일과 임계값을 둡니다. 모델 입력은 640으로 같고, 봉오리가 입력에서 학습 때와 비슷한 크기가 되도록 타일만 다릅니다. `phone`은 1280으로 지금까지의 평가와 같고, `esp`는 880으로 사진 6장, 봉오리 3개로 정한 임시 값입니다.
+
+```bash
+python scripts/40_flower_ids.py <사진 폴더> <출력 폴더> --camera esp --sheet
+```
+
 ## 실행
 ~~~bash
 cd scripts

@@ -48,3 +48,8 @@ def assert_eval_same():
     for n, keys in (('annotations.csv', ANN_FIELDS), ('ignore_regions.csv', IGN_FIELDS)):
         rows = lambda p: sorted(tuple(r[k] for k in keys) for r in read(p / 'labels' / n) if man.get(r['photo']) in ('val', 'test'))
         assert rows(VER) == rows(V1), f'{n}: val, test 라벨이 v1과 다릅니다'
+
+
+def camera(name='phone'):
+    # 카메라별 추론 설정. 입력 크기는 같고 타일만 달라 봉오리가 입력에서 학습 때와 비슷한 크기가 되게 한다
+    return json.loads((VER / 'cameras.json').read_text(encoding='utf-8'))[name]
