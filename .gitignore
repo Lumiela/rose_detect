@@ -13,3 +13,5 @@ __pycache__/
 common/weights/
 # 사람 판정 파일: 농장 사진 조각이 들어 있어 서버에만 둔다. 결과는 labels에 둔다
 human_label/*/html/
+# README 설치 확인의 출력
+out_check*/

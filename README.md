@@ -21,7 +21,7 @@
 git clone git@github.com:Lumiela/rose_detect.git
 cd rose_detect
 ```
-HTTPS 주소는 `https://github.com/Lumiela/rose_detect.git`입니다. 사진 650MB와 가중치 130MB가 들어 있어 받는 양이 큽니다.
+HTTPS 주소는 `https://github.com/Lumiela/rose_detect.git`입니다. 사진 650MB와 가중치 130MB가 들어 있어 clone하면 약 1.7GB입니다.
 
 ### 2. 설치
 Python 3.10에서 확인했습니다.
