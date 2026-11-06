@@ -7,8 +7,9 @@
 | [v1_box](v1_box/README.md) ([리포트](v1_box/REPORT.md)) | 박스 탐지 + 박스별 단계 분류 | 후보 `det/third_pseudo`, `cls/effnetv2s_r2`. v2와 비교 완료, 최종 모델 미정 |
 | [v2_seg](v2_seg/README.md) ([리포트](v2_seg/REPORT.md)) | 세그멘테이션 + ID + ID별 단계 분류 | 학습, ID 부여, [v1 비교](v2_seg/COMPARE.md) 완료. 최종 모델 미정 |
 | [v3_recall](v3_recall/README.md) ([리포트](v3_recall/REPORT.md)) | 세그멘테이션 + ID + ID별 단계 분류, 팀 교차 판정 라벨 | A_base 학습과 test 평가 완료, 최종 모델 미정 |
+| [v4_esp](v4_esp/README.md) ([리포트](v4_esp/REPORT.md)) | v3를 ESP 사진으로 파인튜닝 | 평가 완료, 같은 봉오리로 잰 결과라 사용 모델 미정 |
 
-점수는 모두 휴대폰 사진 기준입니다. 큐브 내부 ESP32 사진으로는 아직 평가하지 않았습니다.
+v3까지의 점수는 휴대폰 사진 기준입니다. 사람이 라벨을 그린 ESP32 사진 평가는 v4_esp에만 있습니다.
 
 ## 폴더 규칙
 - **리포트:** 중요 작업이 끝날 때 작성 여부를 사용자에게 먼저 묻고, 버전 폴더의 `REPORT.html`과 요약 `REPORT.md`에 씁니다.
