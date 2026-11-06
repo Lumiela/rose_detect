@@ -1,0 +1,9 @@
+# 꽃 모델 추론에 필요한 패키지
+# 확인한 환경 (서버): Python 3.10.12, torch 2.3.0 (NVIDIA 빌드), torchvision 0.18.0, ultralytics 8.4.175, Pillow 10.2.0, numpy 1.24.4, opencv 4.7.0
+# GPU를 쓰려면 https://pytorch.org/get-started/locally/ 안내대로 CUDA용 torch, torchvision을 먼저 설치합니다.
+torch>=2.1
+torchvision>=0.16
+ultralytics==8.4.175
+Pillow>=10.1
+numpy
+opencv-python

@@ -7,6 +7,7 @@ from PIL import Image, ImageOps
 from torchvision import transforms as T
 from torchvision.models import efficientnet_v2_s
 
+DEV = 'cuda' if torch.cuda.is_available() else 'cpu'  # GPU가 없으면 CPU로 돈다. 결과는 같고 느리다
 TF = T.Compose([T.Resize((224, 224)), T.ToTensor(), T.Normalize((0.485, 0.456, 0.406), (0.229, 0.224, 0.225))])
 
 
@@ -70,7 +71,7 @@ def detect(model, im, tile=1280, overlap=0.25, imgsz=640, batch=32, mask_box=Fal
 
 def load_cls(path):
     net = efficientnet_v2_s(); net.classifier[1] = nn.Linear(net.classifier[1].in_features, 3); net.load_state_dict(torch.load(path, map_location='cpu'))
-    return net.cuda().eval()
+    return net.to(DEV).eval()
 
 
 def crop_box(p):
@@ -84,7 +85,7 @@ def classify(net, im, P):
     if not len(P):
         return np.zeros((0, 3))
     xs = [TF(im.crop(crop_box(p))) for p in P]; out = []
-    with torch.no_grad(), torch.autocast('cuda', dtype=torch.float16):
+    with torch.no_grad(), torch.autocast(DEV, dtype=torch.float16, enabled=DEV == 'cuda'):
         for i in range(0, len(xs), 128):
-            out.append(net(torch.stack(xs[i:i + 128]).cuda()).float().softmax(1).cpu().numpy())
+            out.append(net(torch.stack(xs[i:i + 128]).to(DEV)).float().softmax(1).cpu().numpy())
     return np.vstack(out)

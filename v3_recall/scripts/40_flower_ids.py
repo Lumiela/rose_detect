@@ -13,8 +13,9 @@ from ultralytics import YOLO
 from infer import classify, crop_box, detect, load_cls, open_photo
 
 EXTS = {'.jpg', '.jpeg', '.jfif', '.png'}; NAMES = ['bud', 'opening', 'full']; COLORS = [(60, 220, 90), (255, 200, 0), (255, 60, 170)]
+# 기본 가중치는 저장소 weights/의 사본이다 (v3 runs/seg/A_base, v1 runs/cls/effnetv2s_r2와 md5 같음)
 ap = argparse.ArgumentParser(); ap.add_argument('paths', nargs='+', help='[사진 또는 폴더] 출력 폴더'); ap.add_argument('--splits'); ap.add_argument('--camera', default='phone', help='cameras.json의 설정'); ap.add_argument('--conf', type=float, default=None, help='기본은 카메라 설정 값')
-ap.add_argument('--seg', default=str(VER / 'runs/seg/A_base/weights/best.pt')); ap.add_argument('--cls', default=str(V1 / 'runs/cls/effnetv2s_r2/best.pt')); ap.add_argument('--sheet', action='store_true'); a = ap.parse_args(); CAM = camera(a.camera); a.conf = CAM['conf'] if a.conf is None else a.conf; print('camera', a.camera, CAM, flush=True)
+ap.add_argument('--seg', default=str(FLOWER / 'weights/flower_seg_v3.pt')); ap.add_argument('--cls', default=str(FLOWER / 'weights/flower_cls_v1r2.pt')); ap.add_argument('--sheet', action='store_true'); a = ap.parse_args(); CAM = camera(a.camera); a.conf = CAM['conf'] if a.conf is None else a.conf; print('camera', a.camera, CAM, flush=True)
 OUT = Path(a.paths[-1]); OUT.mkdir(parents=True, exist_ok=True)
 if a.splits:
     photos = [PHOTOS / m['photo'] for m in read(MANIFEST) if m['split'] in a.splits.split(',') and m['label_status'] in ('draft', 'verified')]
